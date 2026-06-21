@@ -280,12 +280,12 @@
    Hver religion-dok = en religionsprofil (navn + akser).
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyDazYM5XDIABscMaDFgJ1IEco0du4JAN4w",
+  authDomain: "krle-sim.firebaseapp.com",
+  projectId: "krle-sim",
+  storageBucket: "krle-sim.firebasestorage.app",
+  messagingSenderId: "1073291328318",
+  appId: "1:1073291328318:web:2fa3d0e862ed8e25d24a6f"
 };
 
 let db = null;
@@ -305,7 +305,7 @@ function initFirebase(){
    For GitHub Pages: bytt til din Cloudflare Worker-proxy
    (se OPPSETT.md), f.eks. "https://krle-proxy.dittnavn.workers.dev".
    ============================================================ */
-const API_URL = "https://api.anthropic.com/v1/messages";
+const API_URL = "https://patient-bird-01de.espenps.workers.dev";
 async function hentKlasse(kode){
   const d = initFirebase();
   if(!d) throw new Error("Firebase er ikke satt opp ennå – lim inn firebaseConfig øverst i fila.");
