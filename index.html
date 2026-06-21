@@ -235,12 +235,12 @@
      klasser/{klasseId}/religioner/{autoId}   = religionsprofil
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyDazYM5XDIABscMaDFgJ1IEco0du4JAN4w",
+  authDomain: "krle-sim.firebaseapp.com",
+  projectId: "krle-sim",
+  storageBucket: "krle-sim.firebasestorage.app",
+  messagingSenderId: "1073291328318",
+  appId: "1:1073291328318:web:2fa3d0e862ed8e25d24a6f"
 };
 
 let auth=null, db=null;
@@ -278,11 +278,20 @@ if(klar){
     } else { who.innerHTML=""; }
   });
 } else {
-  st("authStatus","Firebase er ikke satt opp ennå – lim inn firebaseConfig øverst i fila (se OPPSETT.md).", false);
+  const grunn = (typeof firebase === "undefined")
+    ? "Firebase-biblioteket lastet ikke i denne fanen. Åpne siden på det publiserte nettstedet ditt (GitHub Pages) – innlogging virker ikke i Claudes forhåndsvisning, og kan også blokkeres av annonseblokkering."
+    : "Firebase-config mangler – lim den inn øverst i fila (se OPPSETT.md).";
+  st("authStatus", grunn, false);
+}
+
+function firebaseGrunn(){
+  return (typeof firebase === "undefined")
+    ? "Firebase lastet ikke her. Åpne siden på det publiserte nettstedet ditt – ikke i forhåndsvisningen."
+    : "Firebase-config mangler – se OPPSETT.md.";
 }
 
 document.getElementById("googleBtn").addEventListener("click",()=>{
-  if(!klar){ st("authStatus","Firebase mangler oppsett.", false); return; }
+  if(!klar){ st("authStatus", firebaseGrunn(), false); return; }
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>st("authStatus", oversettFeil(e), false));
 });
 document.getElementById("vekslAuth").addEventListener("click",()=>{
@@ -293,7 +302,7 @@ document.getElementById("vekslAuth").addEventListener("click",()=>{
   st("authStatus","",null);
 });
 document.getElementById("epostBtn").addEventListener("click",()=>{
-  if(!klar){ st("authStatus","Firebase mangler oppsett.", false); return; }
+  if(!klar){ st("authStatus", firebaseGrunn(), false); return; }
   const e=(document.getElementById("epost").value||"").trim();
   const p=document.getElementById("passord").value||"";
   if(!e||!p){ st("authStatus","Fyll inn e-post og passord.", false); return; }
