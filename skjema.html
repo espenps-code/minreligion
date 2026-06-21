@@ -128,7 +128,7 @@
   <!-- DILEMMA -->
   <section id="dilemma" class="hidden">
     <div class="eyebrow">Tenk deg om</div>
-    <h2 class="crest" style="font-size:clamp(22px,3.4vw,32px)">Tre situasjoner</h2>
+    <h2 class="crest" style="font-size:clamp(22px,3.4vw,32px)">Fem situasjoner</h2>
     <p class="lead" id="dilemmaLead">La oss teste religionen din i tre situasjoner fra livet.</p>
     <div id="dilemmaHolder"></div>
     <div class="rad" id="dilemmaActions"></div>
@@ -156,14 +156,14 @@
    Se OPPSETT.md.
    ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyDazYM5XDIABscMaDFgJ1IEco0du4JAN4w",
+  authDomain: "krle-sim.firebaseapp.com",
+  projectId: "krle-sim",
+  storageBucket: "krle-sim.firebasestorage.app",
+  messagingSenderId: "1073291328318",
+  appId: "1:1073291328318:web:2fa3d0e862ed8e25d24a6f"
 };
-const API_URL = "https://api.anthropic.com/v1/messages";
+const API_URL = "https://patient-bird-01de.espenps.workers.dev";
 
 let db = null;
 function initFirebase(){
@@ -326,12 +326,13 @@ gudsbilde=${profil.gudsbilde}; etterliv=${profil.etterliv}; lidelse=${profil.lid
 ${tidligere}
 
 Lag situasjon nummer ${i+1} av ${MAL_DILEMMA}. La den handle om ${tema}, og gjør den tydelig forskjellig fra de tidligere – grav dypere i en annen verdi. Returner {"situasjon":"2-3 setninger","sporsmal":"...","valg":["...","...","..."]}.`;
-  let d=null, forsok=0;
+  let d=null, forsok=0, sisteFeil="";
   while(!d && forsok<2){
     forsok++;
-    try{ const raw=await kallAI(sys,bruker); const p=trygtJson(raw); if(p && Array.isArray(p.valg) && p.valg.length) d=p; }catch(e){ d=null; }
+    try{ const raw=await kallAI(sys,bruker); const p=trygtJson(raw); if(p && Array.isArray(p.valg) && p.valg.length) d=p; else sisteFeil="Svaret kunne ikke tolkes."; }
+    catch(e){ d=null; sisteFeil=(e&&e.message)||"Ukjent feil."; console.error("AI-feil:", e); }
   }
-  if(!d){ dilemmaFeil(); return; }
+  if(!d){ dilemmaFeil(sisteFeil); return; }
   aktivtDilemma = d;
   renderDilemma();
 }
@@ -353,9 +354,11 @@ function renderDilemma(){
     });
   });
 }
-function dilemmaFeil(){
-  document.getElementById("dilemmaHolder").innerHTML = `<div class="situasjon"><p>Vi klarte ikke å lage flere situasjoner akkurat nå – men du kan gå videre til oppsummeringen.</p></div>`;
+function dilemmaFeil(detalj){
+  const d = detalj ? `<div style="margin-top:10px;font-size:13px;color:#9a7b2e">Teknisk: ${escapeHtml(detalj)}</div>` : "";
+  document.getElementById("dilemmaHolder").innerHTML = `<div class="situasjon"><p>Vi klarte ikke å lage situasjonene akkurat nå – men du kan gå videre til oppsummeringen.</p>${d}</div>`;
   const wrap = document.getElementById("dilemmaActions"); wrap.innerHTML="";
+  wrap.appendChild(lagKnapp("Prøv igjen", ()=>nesteDilemma()));
   wrap.appendChild(lagKnapp("Se min religion →", visResultat));
 }
 
@@ -446,7 +449,11 @@ async function kallAI(system, bruker){
     method:"POST", headers:{"Content-Type":"application/json"},
     body:JSON.stringify({model:"claude-sonnet-4-6", max_tokens:1000, system, messages:[{role:"user",content:bruker}]})
   });
-  const data = await res.json();
+  const tekst = await res.text();
+  if(!res.ok) throw new Error("HTTP "+res.status+" – "+tekst.slice(0,180));
+  let data;
+  try{ data = JSON.parse(tekst); }catch(e){ throw new Error("Uventet svar fra proxyen: "+tekst.slice(0,160)); }
+  if(data && data.error){ throw new Error((data.error.type||"feil")+": "+(data.error.message||"")); }
   return (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
 }
 function trygtJson(txt){
