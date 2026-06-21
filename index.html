@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krøniken – KRLE-verktøy for læreren</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --night:#161433; --night-2:#201d47; --night-3:#2b2760; --parchment:#F3E9D2; --parchment-edge:#e4d6b6;
+    --ink:#2a2440; --gold:#E8B04B; --gold-soft:#f0c97a; --teal:#4FB8A8; --crimson:#C9586B; --peri:#7C8CE0;
+    --line:rgba(243,233,210,0.16);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Atkinson Hyperlegible',system-ui,sans-serif;
+    background:radial-gradient(1200px 720px at 78% -12%, rgba(124,140,224,0.20), transparent 60%),
+               radial-gradient(900px 620px at 6% 112%, rgba(79,184,168,0.15), transparent 55%), var(--night);
+    color:var(--parchment); min-height:100vh; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--gold-soft)}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 22px 70px}
+
+  /* Topbar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:6px 0 22px;border-bottom:1px solid var(--line);margin-bottom:34px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand .navn{font-family:'Fraunces',serif;font-weight:700;font-size:26px;letter-spacing:.5px}
+  .brand .navn .d{color:var(--gold)}
+  .brand .sub{font-size:13px;color:rgba(243,233,210,0.55)}
+  .who{display:flex;align-items:center;gap:12px;font-size:13.5px;color:rgba(243,233,210,0.7)}
+
+  .btn{font-family:'Fraunces',serif;font-weight:600;font-size:16px;background:var(--gold);color:var(--night);
+    border:none;border-radius:12px;padding:12px 22px;cursor:pointer;transition:transform .12s,box-shadow .2s;box-shadow:0 5px 0 rgba(0,0,0,0.25);text-decoration:none;display:inline-block;text-align:center}
+  .btn:hover{transform:translateY(-1px)} .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.25)}
+  .btn:focus-visible{outline:3px solid var(--parchment);outline-offset:3px}
+  .btn.ghost{background:transparent;color:var(--parchment);border:1px solid var(--line);box-shadow:none}
+  .btn.liten{font-size:14px;padding:9px 15px;box-shadow:0 4px 0 rgba(0,0,0,0.25)}
+  .btn.av{opacity:.45;pointer-events:none}
+  .btn.fare{background:transparent;border:1px solid rgba(201,88,107,.6);color:#e69aa8;box-shadow:none}
+
+  .panel{background:var(--night-2);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+  .panel h2{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin:0 0 4px}
+  .panel p.hint{font-size:13.5px;color:rgba(243,233,210,0.6);margin:0 0 14px}
+  input[type=text],input[type=email],input[type=password],input[type=number]{
+    background:var(--night);color:var(--parchment);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font:inherit;font-size:15px;width:100%}
+  input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+  label.felt{display:block;font-size:13px;font-weight:700;color:var(--gold-soft);margin:0 0 5px}
+  .rad{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .status{margin-top:10px;font-size:14px;min-height:18px}
+  .status.ok{color:#7fd6c4}.status.feil{color:#e69aa8}
+  .hidden{display:none !important}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+  /* ---------- Landing ---------- */
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:center;margin-bottom:14px}
+  .hero .eyebrow{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:12px}
+  .hero h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(32px,5vw,52px);line-height:1.04;margin:0 0 16px}
+  .hero h1 .g{color:var(--gold)}
+  .hero p{font-size:clamp(16px,2.1vw,19px);color:rgba(243,233,210,0.82);max-width:520px;margin:0 0 24px}
+
+  .auth-card{background:var(--night-2);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .auth-card h3{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin:0 0 4px}
+  .auth-card .liten-tekst{font-size:13px;color:rgba(243,233,210,0.55);margin:0 0 18px}
+  .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--parchment);color:#2a2440;border:none;border-radius:11px;padding:13px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;margin-bottom:14px}
+  .google-btn:hover{filter:brightness(.97)}
+  .google-btn svg{width:18px;height:18px}
+  .delelinje{display:flex;align-items:center;gap:12px;color:rgba(243,233,210,0.4);font-size:12px;margin:6px 0 14px}
+  .delelinje::before,.delelinje::after{content:"";flex:1;height:1px;background:var(--line)}
+  .auth-card input{margin-bottom:11px}
+  .auth-card .veksle{background:none;border:none;color:var(--gold-soft);font:inherit;font-size:13.5px;cursor:pointer;padding:0;margin-top:12px;text-decoration:underline}
+
+  .steg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:42px 0 10px}
+  .steg .kort{background:var(--night-2);border:1px solid var(--line);border-radius:15px;padding:20px}
+  .steg .nr{font-family:'Fraunces',serif;font-weight:700;font-size:30px;color:var(--gold);line-height:1;margin-bottom:10px}
+  .steg h4{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0 0 6px}
+  .steg p{font-size:14px;color:rgba(243,233,210,0.72);margin:0}
+  .seksjon-tit{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin:46px 0 4px}
+  .seksjon-sub{font-size:14px;color:rgba(243,233,210,0.6);margin:0 0 18px}
+  .deler{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .deler .kort{background:var(--night-2);border:1px solid var(--line);border-radius:15px;padding:20px;border-top:4px solid var(--c)}
+  .deler h4{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0 0 6px}
+  .deler p{font-size:13.5px;color:rgba(243,233,210,0.72);margin:0}
+
+  /* ---------- Dashboard ---------- */
+  .klasseliste{display:flex;flex-direction:column;gap:10px}
+  .klasse-rad{display:flex;align-items:center;gap:14px;background:var(--night);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
+  .klasse-rad:hover{border-color:var(--gold)}
+  .klasse-rad.aktiv{border-color:var(--gold);background:rgba(232,176,75,0.08)}
+  .klasse-rad .ikon{width:38px;height:38px;border-radius:10px;background:var(--night-3);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;color:var(--gold-soft);flex-shrink:0}
+  .klasse-rad .info{flex:1;min-width:0}
+  .klasse-rad .info .k{font-weight:700;font-size:16px}
+  .klasse-rad .info .m{font-size:12.5px;color:rgba(243,233,210,0.55)}
+  .klasse-rad .pil{color:rgba(243,233,210,0.4)}
+  .tom{font-size:14px;color:rgba(243,233,210,0.55);padding:8px 0}
+
+  .lenkeliste{margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto}
+  .lenkerad{display:flex;gap:10px;align-items:center;background:var(--night);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px}
+  .lenkerad .alias{font-weight:700;color:var(--gold-soft);min-width:90px}
+  .lenkerad .url{flex:1;color:rgba(243,233,210,0.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .lenkerad button{background:transparent;border:1px solid var(--line);color:var(--parchment);border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+  .lenkerad button:hover{border-color:var(--gold)}
+
+  .teller{font-size:13.5px;color:var(--gold-soft);font-weight:700;margin:2px 0 12px}
+  .rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .rel-kort{background:var(--night);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;opacity:.62;transition:opacity .15s,border-color .15s}
+  .rel-kort.valgt{opacity:1;border-color:var(--gold)}
+  .rel-topp{display:flex;gap:11px;align-items:center;padding:14px 15px 8px;cursor:pointer}
+  .velg-merke{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:var(--night-3);border:1px solid var(--line);color:var(--gold-soft);flex-shrink:0}
+  .rel-kort.valgt .velg-merke{background:var(--gold);color:var(--night);border-color:var(--gold)}
+  .rel-topp h3{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0;line-height:1.1}
+  .rel-topp .alias{font-size:12px;color:rgba(243,233,210,0.5)}
+  .rel-kjerne{padding:0 15px;font-size:13px;color:var(--teal);font-weight:700}
+  .vis-detaljer{margin:9px 15px 13px;background:transparent;border:none;color:var(--gold-soft);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:0}
+  .detaljer{padding:0 15px 15px;font-size:13px}
+  .detaljer dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 10px}
+  .detaljer dt{color:rgba(243,233,210,0.5)} .detaljer dd{margin:0;color:rgba(243,233,210,0.85)}
+  .dsvar{border-top:1px solid var(--line);padding-top:9px}
+  .dsvar .t{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:6px}
+  .dsvar ol{margin:0;padding-left:18px} .dsvar li{margin-bottom:4px;color:rgba(243,233,210,0.85)}
+
+  @media (max-width:760px){ .hero{grid-template-columns:1fr} .steg,.deler{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="navn">Krøniken<span class="d">.</span></span>
+      <span class="sub">KRLE · lag, møt og diskuter religioner</span>
+    </div>
+    <div class="who" id="who"></div>
+  </div>
+
+  <!-- ============ LANDING (utlogget) ============ -->
+  <section id="landing">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">For læreren · 7. trinn</div>
+        <h1>Elevene bygger en religion. Så <span class="g">møtes</span> de i én verden.</h1>
+        <p>Et komplett KRLE-opplegg: elevene svarer seg fram til sin egen religion, en KI lager situasjoner de må ta stilling til, og til slutt møtes religionene i en sivilisasjonssimulator som driver klassediskusjonen.</p>
+        <div class="rad">
+          <a class="btn" href="#logginn" id="heroCta">Logg inn for å begynne</a>
+          <a class="btn ghost" href="#hvordan">Slik fungerer det</a>
+        </div>
+      </div>
+      <div class="auth-card" id="logginn">
+        <h3 id="authTit">Logg inn</h3>
+        <p class="liten-tekst" id="authSub">Logg inn for å lage klasser og se innleveringene dine.</p>
+        <button class="google-btn" id="googleBtn">
+          <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-17z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C1 16.3 0 20 0 24s1 7.7 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.8-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.7 2.1-6.4 0-11.8-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+          Fortsett med Google
+        </button>
+        <div class="delelinje">eller med e-post</div>
+        <label class="felt" for="epost">E-post</label>
+        <input id="epost" type="email" autocomplete="email" placeholder="ditt.navn@skole.no">
+        <label class="felt" for="passord">Passord</label>
+        <input id="passord" type="password" autocomplete="current-password" placeholder="Minst 6 tegn">
+        <button class="btn" id="epostBtn" style="width:100%">Logg inn</button>
+        <button class="veksle" id="vekslAuth">Ny her? Opprett konto</button>
+        <div class="status" id="authStatus"></div>
+      </div>
+    </div>
+
+    <div class="steg" id="hvordan">
+      <div class="kort"><div class="nr">1</div><h4>Elevene bygger</h4><p>Hver elev får en lenke, svarer på spørsmål om tro, moral og fellesskap, og tar stilling til fem situasjoner KI-en lager.</p></div>
+      <div class="kort"><div class="nr">2</div><h4>Du henter klassen</h4><p>Alle religionene samles hos deg med kallenavn, verdivalg og hvordan elevene resonnerte.</p></div>
+      <div class="kort"><div class="nr">3</div><h4>De møtes</h4><p>Velg 2–5 religioner. Simulatoren forteller hvordan de utvikler seg og møtes – med kart, spenning og diskusjonsspørsmål.</p></div>
+    </div>
+
+    <h2 class="seksjon-tit">De tre delene</h2>
+    <p class="seksjon-sub">Alt henger sammen og styres herfra.</p>
+    <div class="deler">
+      <div class="kort" style="--c:var(--teal)"><h4>Lærersiden</h4><p>Din side. Lag klasser, del ut elevlenker, se innleveringer og start simulatoren.</p></div>
+      <div class="kort" style="--c:var(--crimson)"><h4>Elevskjemaet</h4><p>Eleven bygger religionen sin gjennom spørsmål og situasjoner, og lagrer den til klassen.</p></div>
+      <div class="kort" style="--c:var(--peri)"><h4>Simulatoren</h4><p>Religionene møtes i én verden, epoke for epoke, som grunnlag for refleksjon og diskusjon.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD (innlogget) ============ -->
+  <section id="dashboard" class="hidden">
+    <div class="panel">
+      <h2>Mine klasser</h2>
+      <p class="hint">Velg en klasse for å dele ut lenker, se innleveringer og starte simulatoren.</p>
+      <div class="klasseliste" id="klasseliste"></div>
+      <div class="rad" style="margin-top:16px">
+        <input id="nyKode" type="text" placeholder="Navn på klasse (f.eks. 7B KRLE)" style="flex:1;min-width:180px">
+        <button class="btn liten" id="nyKlasseBtn">Ny klasse</button>
+      </div>
+      <div class="status" id="klasseStatus"></div>
+    </div>
+
+    <div id="klassePanel" class="hidden">
+      <div class="panel">
+        <h2 id="kpTittel">Klasse</h2>
+        <p class="hint">Del ut elevlenker. Hver elev får en egen lenke med ferdig kallenavn.</p>
+        <div class="rad">
+          <input id="antall" type="number" min="1" max="40" value="20" style="width:90px">
+          <button class="btn liten" id="genererBtn">Generer lenker</button>
+          <button class="btn ghost liten" id="kopierAlleBtn">Kopier alle</button>
+        </div>
+        <div class="status" id="lenkeStatus"></div>
+        <div class="lenkeliste" id="lenkeliste"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Innleverte religioner</h2>
+        <p class="hint">Klikk på et kort for å velge det. Velg 2–5 og send dem til simulatoren.</p>
+        <div class="teller" id="teller"></div>
+        <div class="rel-grid" id="relGrid"></div>
+        <div class="rad" style="margin-top:18px">
+          <a class="btn av" id="simBtn" target="_blank" rel="noopener">Åpne valgte i simulatoren →</a>
+          <button class="btn ghost liten" id="oppdaterBtn">Oppdater</button>
+          <button class="btn fare liten" id="slettBtn" style="margin-left:auto">Slett klassen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   OPPSETT — samme firebaseConfig i alle filene (se OPPSETT.md).
+   Krever Firebase Authentication (Google + E-post/passord) og
+   Firestore. Datastruktur (multitenant):
+     klasser/{klasseId}            { eier, kode, opprettet }
+     klasser/{klasseId}/religioner/{autoId}   = religionsprofil
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+let auth=null, db=null;
+function initFirebase(){
+  if(typeof firebase==="undefined" || !FIREBASE_CONFIG.projectId) return false;
+  try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); auth=firebase.auth(); db=firebase.firestore(); return true; }
+  catch(e){ return false; }
+}
+const klar = initFirebase();
+
+let bruker=null, klasser=[], aktivKlasse=null, religioner=[], valgt=[], nyKonto=false, sisteLenker=[];
+
+const FELT = [
+  ["gudsbilde","Tror på"],["etterliv","Etter døden"],["lidelse","Vonde ting"],["moral","Rett og galt"],
+  ["leveregler","Leveregel"],["tilgivelse","Tilgivelse"],["autoritet","Bestemmer"],["likeverd","Stemme"],
+  ["fellesskap","Viktigst"],["rikdom","Rikdom"],["endring","Forandring"],["andre","Andre"],
+  ["fremmede","Fremmede"],["konflikt","Ved konflikt"],["natur","Naturen"],["ritualer","Samles"]
+];
+const ALIAS_ORD = ["Stjerne","Bølge","Lyn","Måne","Sol","Fjell","Storm","Elv","Skog","Frost","Glød","Vind","Sky","Tind","Foss","Drage","Ravn","Ulv","Rev","Bjørn","Hauk","Tjern","Bre","Nord","Eik","Lønn","Vår","Høst","Gry","Snø"];
+
+function st(id,msg,ok){ const el=document.getElementById(id); if(!el)return; el.textContent=msg; el.className="status "+(ok===true?"ok":ok===false?"feil":""); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function kopier(t){ try{ navigator.clipboard.writeText(t); }catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(_){} ta.remove(); } }
+
+/* ---------- Auth ---------- */
+if(klar){
+  auth.onAuthStateChanged(u=>{
+    bruker=u;
+    document.getElementById("landing").classList.toggle("hidden", !!u);
+    document.getElementById("dashboard").classList.toggle("hidden", !u);
+    const who=document.getElementById("who");
+    if(u){ who.innerHTML = `<span>${esc(u.email||"Innlogget")}</span> <button class="btn ghost liten" id="utBtn">Logg ut</button>`;
+      document.getElementById("utBtn").addEventListener("click",()=>auth.signOut());
+      lastKlasser();
+    } else { who.innerHTML=""; }
+  });
+} else {
+  st("authStatus","Firebase er ikke satt opp ennå – lim inn firebaseConfig øverst i fila (se OPPSETT.md).", false);
+}
+
+document.getElementById("googleBtn").addEventListener("click",()=>{
+  if(!klar){ st("authStatus","Firebase mangler oppsett.", false); return; }
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>st("authStatus", oversettFeil(e), false));
+});
+document.getElementById("vekslAuth").addEventListener("click",()=>{
+  nyKonto=!nyKonto;
+  document.getElementById("authTit").textContent = nyKonto?"Opprett konto":"Logg inn";
+  document.getElementById("epostBtn").textContent = nyKonto?"Opprett konto":"Logg inn";
+  document.getElementById("vekslAuth").textContent = nyKonto?"Har du konto? Logg inn":"Ny her? Opprett konto";
+  st("authStatus","",null);
+});
+document.getElementById("epostBtn").addEventListener("click",()=>{
+  if(!klar){ st("authStatus","Firebase mangler oppsett.", false); return; }
+  const e=(document.getElementById("epost").value||"").trim();
+  const p=document.getElementById("passord").value||"";
+  if(!e||!p){ st("authStatus","Fyll inn e-post og passord.", false); return; }
+  const lov = nyKonto ? auth.createUserWithEmailAndPassword(e,p) : auth.signInWithEmailAndPassword(e,p);
+  lov.catch(err=>st("authStatus", oversettFeil(err), false));
+});
+function oversettFeil(e){
+  const c=(e&&e.code)||"";
+  if(c.includes("popup-closed")) return "Påloggingen ble avbrutt.";
+  if(c.includes("wrong-password")||c.includes("invalid-credential")) return "Feil e-post eller passord.";
+  if(c.includes("user-not-found")) return "Fant ingen konto – prøv «Opprett konto».";
+  if(c.includes("email-already-in-use")) return "E-posten er allerede i bruk – logg inn i stedet.";
+  if(c.includes("weak-password")) return "Passordet må ha minst 6 tegn.";
+  if(c.includes("unauthorized-domain")) return "Domenet er ikke godkjent i Firebase (Authentication → Settings → Authorized domains).";
+  return (e&&e.message)||"Noe gikk galt.";
+}
+
+/* ---------- Klasser ---------- */
+async function lastKlasser(){
+  st("klasseStatus","",null);
+  try{
+    const snap = await db.collection("klasser").where("eier","==",bruker.uid).get();
+    klasser = [];
+    snap.forEach(d=>{ const x=d.data()||{}; klasser.push({id:d.id, kode:x.kode||"Klasse", opprettet:(x.opprettet&&x.opprettet.seconds)||0}); });
+    klasser.sort((a,b)=>b.opprettet-a.opprettet);
+    renderKlasser();
+  }catch(e){ st("klasseStatus", "Kunne ikke hente klasser: "+(e.message||e), false); }
+}
+function renderKlasser(){
+  const liste=document.getElementById("klasseliste");
+  if(!klasser.length){ liste.innerHTML = `<div class="tom">Ingen klasser ennå. Lag din første nedenfor.</div>`; return; }
+  liste.innerHTML="";
+  klasser.forEach(k=>{
+    const rad=document.createElement("div");
+    rad.className="klasse-rad"+(aktivKlasse&&aktivKlasse.id===k.id?" aktiv":"");
+    rad.innerHTML=`<div class="ikon">${esc((k.kode||"K").slice(0,2).toUpperCase())}</div>
+      <div class="info"><div class="k">${esc(k.kode)}</div><div class="m">Trykk for å åpne</div></div>
+      <div class="pil">→</div>`;
+    rad.addEventListener("click",()=>velgKlasse(k));
+    liste.appendChild(rad);
+  });
+}
+document.getElementById("nyKlasseBtn").addEventListener("click", async ()=>{
+  const kode=(document.getElementById("nyKode").value||"").trim();
+  if(!kode){ st("klasseStatus","Skriv et klassenavn.", false); return; }
+  st("klasseStatus","Lager klasse …", null);
+  try{
+    const ref = await db.collection("klasser").add({ eier:bruker.uid, kode, opprettet: firebase.firestore.FieldValue.serverTimestamp() });
+    document.getElementById("nyKode").value="";
+    st("klasseStatus","Klassen er laget.", true);
+    await lastKlasser();
+    const ny = klasser.find(k=>k.id===ref.id);
+    if(ny) velgKlasse(ny);
+  }catch(e){ st("klasseStatus","Kunne ikke lage klasse: "+(e.message||e), false); }
+});
+
+async function velgKlasse(k){
+  aktivKlasse=k; valgt=[]; sisteLenker=[];
+  renderKlasser();
+  document.getElementById("klassePanel").classList.remove("hidden");
+  document.getElementById("kpTittel").textContent = k.kode;
+  document.getElementById("lenkeliste").innerHTML="";
+  st("lenkeStatus","",null);
+  document.getElementById("klassePanel").scrollIntoView({behavior:"smooth",block:"start"});
+  await lastReligioner();
+}
+async function lastReligioner(){
+  const grid=document.getElementById("relGrid");
+  grid.innerHTML=`<div class="tom">Henter innleveringer …</div>`;
+  try{
+    const snap = await db.collection("klasser").doc(aktivKlasse.id).collection("religioner").get();
+    religioner=[]; snap.forEach(d=>{ const x=d.data()||{}; x.id=d.id; religioner.push(x); });
+    renderReligioner();
+  }catch(e){ grid.innerHTML=`<div class="tom">Kunne ikke hente innleveringer: ${esc(e.message||e)}</div>`; }
+}
+document.getElementById("oppdaterBtn").addEventListener("click", lastReligioner);
+
+function renderReligioner(){
+  const grid=document.getElementById("relGrid");
+  if(!religioner.length){ grid.innerHTML=`<div class="tom">Ingen religioner innlevert ennå. Del ut elevlenkene over.</div>`; oppdaterTeller(); return; }
+  grid.innerHTML="";
+  religioner.forEach(r=>{
+    const v=valgt.includes(r.id);
+    const kort=document.createElement("div");
+    kort.className="rel-kort"+(v?" valgt":"");
+    const dl=FELT.filter(f=>r[f[0]]).map(f=>`<dt>${f[1]}</dt><dd>${esc(r[f[0]])}</dd>`).join("");
+    const ds=(Array.isArray(r.dilemmasvar)&&r.dilemmasvar.length)?`<div class="dsvar"><div class="t">Valg i situasjonene</div><ol>${r.dilemmasvar.map(d=>`<li>${esc(d.svar)}</li>`).join("")}</ol></div>`:"";
+    kort.innerHTML=`<div class="rel-topp"><span class="velg-merke">${v?"✓":"+"}</span>
+      <div><h3>${esc(r.navn||"Uten navn")}</h3><div class="alias">${esc(r.alias||"")}</div></div></div>
+      <div class="rel-kjerne">${esc(r.kjerne||"")}</div>
+      <button class="vis-detaljer">Vis detaljer ▾</button>
+      <div class="detaljer hidden"><dl>${dl}</dl>${ds}</div>`;
+    kort.querySelector(".rel-topp").addEventListener("click",()=>vekslReligion(r.id));
+    const vd=kort.querySelector(".vis-detaljer");
+    vd.addEventListener("click",(e)=>{ e.stopPropagation(); const det=kort.querySelector(".detaljer"); const skjult=det.classList.toggle("hidden"); vd.textContent=skjult?"Vis detaljer ▾":"Skjul detaljer ▴"; });
+    grid.appendChild(kort);
+  });
+  oppdaterTeller();
+}
+function vekslReligion(id){
+  const i=valgt.indexOf(id);
+  if(i>-1) valgt.splice(i,1);
+  else { if(valgt.length>=5){ st("lenkeStatus","Du kan teste maks 5 om gangen.", false); return; } valgt.push(id); }
+  renderReligioner();
+}
+function oppdaterTeller(){
+  const n=valgt.length;
+  document.getElementById("teller").textContent = religioner.length ? `${n} av maks 5 valgt`+(n<2?" – velg minst 2 for å teste.":".") : "";
+  const sim=document.getElementById("simBtn");
+  if(n>=2){ sim.classList.remove("av"); sim.href=simulatorLenke(aktivKlasse.id, valgt); }
+  else { sim.classList.add("av"); sim.removeAttribute("href"); }
+}
+
+document.getElementById("slettBtn").addEventListener("click", async ()=>{
+  if(!aktivKlasse) return;
+  if(!confirm(`Slette klassen «${aktivKlasse.kode}» og alle innleveringene? Dette kan ikke angres.`)) return;
+  try{
+    const sub=await db.collection("klasser").doc(aktivKlasse.id).collection("religioner").get();
+    const batch=db.batch();
+    sub.forEach(d=>batch.delete(d.ref));
+    batch.delete(db.collection("klasser").doc(aktivKlasse.id));
+    await batch.commit();
+    document.getElementById("klassePanel").classList.add("hidden");
+    aktivKlasse=null;
+    await lastKlasser();
+  }catch(e){ st("lenkeStatus","Kunne ikke slette: "+(e.message||e), false); }
+});
+
+/* ---------- Lenker ---------- */
+function skjemaLenke(id, alias){ return new URL(`skjema.html?klasse=${encodeURIComponent(id)}&navn=${encodeURIComponent(alias)}`, location.href).href; }
+function simulatorLenke(id, ids){ const v=ids&&ids.length?"&velg="+encodeURIComponent(ids.join(",")):""; return new URL(`simulator.html?klasse=${encodeURIComponent(id)}${v}`, location.href).href; }
+function genererAliaser(antall){
+  const brukt=new Set(), ut=[]; let g=0;
+  while(ut.length<antall && g<antall*30){ g++; const a=ALIAS_ORD[Math.floor(Math.random()*ALIAS_ORD.length)]+"-"+(Math.floor(Math.random()*90)+10); if(!brukt.has(a)){ brukt.add(a); ut.push(a);} }
+  return ut;
+}
+document.getElementById("genererBtn").addEventListener("click",()=>{
+  if(!aktivKlasse) return;
+  const antall=Math.max(1,Math.min(40,parseInt(document.getElementById("antall").value)||20));
+  sisteLenker=genererAliaser(antall).map(a=>({alias:a, url:skjemaLenke(aktivKlasse.id,a)}));
+  const liste=document.getElementById("lenkeliste");
+  liste.innerHTML=sisteLenker.map((l,i)=>`<div class="lenkerad"><span class="alias">${esc(l.alias)}</span><span class="url" title="${esc(l.url)}">${esc(l.url)}</span><button data-i="${i}">Kopier</button></div>`).join("");
+  liste.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ kopier(sisteLenker[+b.dataset.i].url); b.textContent="Kopiert ✓"; setTimeout(()=>b.textContent="Kopier",1200); }));
+  st("lenkeStatus",`Lagde ${antall} elevlenker – del ut én per elev.`, true);
+});
+document.getElementById("kopierAlleBtn").addEventListener("click",()=>{
+  if(!sisteLenker.length){ st("lenkeStatus","Generer lenker først.", false); return; }
+  kopier(sisteLenker.map(l=>`${l.alias}\t${l.url}`).join("\n"));
+  st("lenkeStatus","Alle lenker kopiert (kallenavn + lenke per linje).", true);
+});
+</script>
+</body>
+</html>
