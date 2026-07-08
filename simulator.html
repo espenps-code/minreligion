@@ -135,6 +135,16 @@
   .snakk .tag{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
   .snakk p{margin:0;font-size:clamp(16px,1.9vw,18.5px);font-family:'Fraunces',serif;font-weight:400;color:var(--parchment)}
 
+  /* Verdens regnskap (World Dominion) */
+  .regnskap{margin-top:22px;background:var(--night-2);border:2px solid var(--gold);border-radius:16px;padding:20px 22px}
+  .regnskap .tag{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:8px}
+  .regnskap h3{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(20px,2.8vw,26px);margin:0 0 14px;color:var(--parchment)}
+  .regnskap dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:9px 16px;font-size:15px}
+  .regnskap dt{color:var(--gold-soft);font-weight:700}
+  .regnskap dd{margin:0;color:rgba(243,233,210,0.88)}
+  .modus-info{font-size:13.5px;color:rgba(243,233,210,0.6);margin:12px 0 0}
+  .modus-info b{color:var(--gold-soft)}
+
   /* Relations strip */
   .relations{margin:18px 0 0;font-size:14px;color:rgba(243,233,210,0.66);display:flex;gap:8px;align-items:flex-start}
   .relations b{color:var(--gold-soft);font-weight:700;flex-shrink:0}
@@ -231,6 +241,16 @@
         </div>
         <div class="import-status" id="importStatus"></div>
       </details>
+    </div>
+
+    <div class="panel">
+      <h2>Modus</h2>
+      <p class="hint">Velg hva slags verden religionene skal møtes i.</p>
+      <div class="seg" role="group" aria-label="Modus" id="modusSeg">
+        <button data-modus="kronike" aria-pressed="true">Krøniken</button>
+        <button data-modus="dominion" aria-pressed="false">World Dominion</button>
+      </div>
+      <p class="modus-info" id="modusInfo"><b>Krøniken:</b> religionene utvikler seg side om side. Ingen vinner kåres – fokus på refleksjon og avveininger.</p>
     </div>
 
     <div class="panel">
@@ -377,6 +397,23 @@ const EPOKER = [
    instr:"Generasjoner har gått. Oppsummer hva som ble igjen etter hvert samfunn, og hvilke verdier som preget verden de etterlot seg. Ingen vinner kåres – løft fram avveininger og spor."}
 ];
 
+/* ---------- World Dominion: eget epokeløp ---------- */
+const EPOKER_DOMINION = [
+  {tema:"Grunnleggelse og ambisjon", kort:"Ambisjon", krevVeiskille:false,
+   instr:"Samfunnene grunnlegges i en ny verden – men med ett spørsmål hengende over alt: hvem av dem har verdier som kan vinne verden? Vis hva i hver religion som driver den til å vokse (misjonstrang, fellesskap, kunnskap, handel, makt) og hva som kan holde den tilbake."},
+  {tema:"Ekspansjonen", kort:"Ekspansjon", krevVeiskille:true,
+   instr:"Religionene sprer seg og støter i hverandre. Vis HVORDAN hver av dem vinner terreng (misjonærer, handel, vennskap, press, erobring) og hvem som taper. Minst én religion tar et valg som går ut over en annen. Veiskillet: hvordan skal den mest ekspansive spre seg videre? Valgene skal ha reelt ulik moralsk pris."},
+  {tema:"Misjon eller sverd", kort:"Makt", krevVeiskille:true,
+   instr:"Kampen om verden hardner. Noen konverterer av overbevisning, andre av frykt eller fordel. Vis presset mot de svakeste: hvem mister troende, hvem tvinges, hvem kjøpes. Veiskillet skal være et ekte maktvalg – f.eks. tvinge gjennom troen, kjøpe lojalitet, eller vinne hjerter sakte og risikere å tape kappløpet."},
+  {tema:"Motstand og frafall", kort:"Motstand", krevVeiskille:true,
+   instr:"De som taper terreng svarer: motstand, hemmelige samfunn, frafall, mennesker som nekter å gi opp troen sin (aldri grafisk). Vis hva dominans koster den sterkeste innenfra – frykt, hykleri, tomme ritualer – og hva press gjør med de små. Veiskillet: hvordan møter den ledende religionen motstanden – slå ned, tåle i det skjulte, eller gi frihet og risikere å miste grepet?"},
+  {tema:"Hegemoni eller kollaps", kort:"Hegemoni", krevVeiskille:true,
+   instr:"Avgjørelsens epoke: én religion står nær verdensherredømme – eller verden splintres. Vis konsekvensene av klassens valg så langt. Veiskillet er det siste og største: hva slags verden skal den sterkeste bygge – én tro for alle, en tro som hersker over de andre, eller et rike der de beseirede beholder troen sin mot lydighet?"},
+  {tema:"Regnskapet", kort:"Regnskap", krevVeiskille:false,
+   instr:"Gjør opp verdens regnskap. Pek ærlig på hvilken religion som dominerer verden nå – eller slå fast at ingen vant. Men vis prisen like ærlig: hva verden mistet av mangfold, frihet og kunnskap, hvem som bærer sår, og hvilke tros-spor fra taperne som lever videre i det skjulte. Ingen glansbilder – dominans har alltid en pris."}
+];
+function EPO(){ return state.modus==="dominion" ? EPOKER_DOMINION : EPOKER; }
+
 const ALVOR_TEKST = {
   mild:"Mild tone: konflikt finnes, men dempet. Uenighet løses oftest fredelig, og opptrapping skjer sjelden.",
   realistisk:"Realistisk tone: rivalisering, kriser, press og splittelse oppstår når verdiene tilsier det – ikke glatt det over. Alderstilpasset, uten grafiske detaljer.",
@@ -494,9 +531,12 @@ function byggKart(){
   kartBygd=true;
 }
 function renderVerden(){
+  const eierTelling = {};
+  let hexerEid = 0;
   hexEls.forEach((el,i)=>{
     const h=HEXES[i];
     const eier=eierAv(h);
+    if(eier){ const rotId = eier.splinterAv || eier.id; eierTelling[rotId]=(eierTelling[rotId]||0)+1; hexerEid++; }
     let innen=0;
     state.verden.forEach(c=>{ if(Math.hypot(h.x-c.x,h.y-c.y)<=c.reach) innen++; });
     if(eier){
@@ -512,9 +552,13 @@ function renderVerden(){
     }
   });
   const leg=document.getElementById("legend");
-  leg.innerHTML = state.verden.map(c=>
-    `<span><i style="background:${fargeFor(c)}"></i>${escapeHtml(c.navn||c.id)}${c.splinterAv?" (utbrytere)":""}</span>`
-  ).join("");
+  leg.innerHTML = state.verden.map(c=>{
+    let andel="";
+    if(state.modus==="dominion" && !c.splinterAv && hexerEid>0){
+      andel = ` · ${Math.round(100*(eierTelling[c.id]||0)/hexerEid)}%`;
+    }
+    return `<span><i style="background:${fargeFor(c)}"></i>${escapeHtml(c.navn||c.id)}${c.splinterAv?" (utbrytere)":""}${andel}</span>`;
+  }).join("");
 
   const sp = Math.max(0,Math.min(100, Math.round(state.spenning||0)));
   const spFarge = sp<34 ? "#4FB8A8" : (sp<67 ? "#E8B04B" : "#C9586B");
@@ -536,6 +580,7 @@ function renderVerden(){
 /* ---------- Tilstand ---------- */
 let state = {
   epokeIndex:0,
+  modus:"kronike",
   alvor:"realistisk",
   kronikk:"Ingenting har skjedd ennå.",
   relasjoner:"Samfunnene kjenner ikke hverandre ennå.",
@@ -642,11 +687,24 @@ document.getElementById("hentBtn").addEventListener("click", async ()=>{
   }catch(e){ fbStatus(e.message, false); }
 });
 
-document.querySelectorAll('.seg button').forEach(b=>{
+document.querySelectorAll('.seg button[data-alvor]').forEach(b=>{
   b.addEventListener('click',()=>{
-    document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    document.querySelectorAll('.seg button[data-alvor]').forEach(x=>x.setAttribute('aria-pressed','false'));
     b.setAttribute('aria-pressed','true');
     state.alvor = b.dataset.alvor;
+  });
+});
+
+const MODUS_INFO = {
+  kronike:'<b>Krøniken:</b> religionene utvikler seg side om side. Ingen vinner kåres – fokus på refleksjon og avveininger.',
+  dominion:'<b>World Dominion:</b> religionene kjemper om verden. Verdiene avgjør hvem som vokser og hvem som presses – og til slutt gjøres regnskapet opp: hvem dominerer, og hva kostet det? Veiskillene blir ekte maktvalg. Krever en klasse som tåler tøffere diskusjoner.'
+};
+document.querySelectorAll('#modusSeg button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#modusSeg button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    state.modus = b.dataset.modus;
+    document.getElementById("modusInfo").innerHTML = MODUS_INFO[state.modus];
   });
 });
 
@@ -701,7 +759,7 @@ renderOppsett();
 function renderSpine(){
   const spine = document.getElementById("spine");
   spine.innerHTML="";
-  EPOKER.forEach((e,i)=>{
+  EPO().forEach((e,i)=>{
     const n=document.createElement("div");
     n.className="node"+(i<state.epokeIndex?" done":"")+(i===state.epokeIndex?" active":"");
     n.innerHTML=`<div class="dot">${i+1}</div><div class="lbl">${e.kort}</div>`;
@@ -743,8 +801,31 @@ Sett også et tall "spenning" (0–100) på toppnivå i JSON-en som viser hvor h
 
 Svar KUN med gyldig JSON. Ikke bruk markdown, kodeblokker eller "...". Ikke skriv noe tekst utenfor JSON-objektet, og pass på at JSON-en er fullstendig og lukket.`;
 
+const SYSTEM_DOMINION = `Du er krønikeskriveren i «World Dominion» – en KRLE-klasseromssimulering for 7. trinn (12-åringer) i Norge. Flere oppdiktede religioner kjemper om innflytelse i én delt verden, og klassen skal se ærlig hvilke verdier som faktisk sprer en religion – og hva dominans koster.
+
+Helt sentrale regler:
+- Skriv norsk bokmål, levende men enkelt nok for 12-åringer.
+- Dette er IKKE en nøytral krønike: du SKAL vise maktkampen ærlig. Religioner med misjonstrang, eksklusive sannhetskrav, sterk autoritet, rikdom eller vilje til press vinner ofte terreng; åpne, små eller innadvendte samfunn presses, mister troende eller tvinges. La verdiene og klassens valg avgjøre hvem som vokser – ikke rettferdighet.
+- Men dominans skal ALLTID ha en synlig pris: tap av frihet, mangfold, kunnskap eller indre ærlighet. Folk som konverterer av frykt tror ikke ekte. Vis vinnerens sår like tydelig som seieren.
+- Veiskillene skal være ubehagelige maktvalg uten et snilt fasitsvar – hvert valg skal koste noe ulikt.
+- Religionene er oppdiktede og skal aldri kunne knyttes til virkelige trossamfunn. Ikke bruk begreper, navn eller symboler fra virkelige religioner, og ikke ord som «hellig krig» eller «korstog».
+- Alderstilpasset: tvang, undertrykkelse og tap skal merkes i KONSEKVENSER (frykt, flukt, forbud, tapte områder, splittede familier) – aldri grafisk vold, tortur eller død i detalj.
+- Hold "fortelling" kort: maks ca. 100 ord, gjerne 2 avsnitt skilt med \\n\\n. Hold hele JSON-svaret kompakt.
+
+I tillegg fører du et "verden"-felt (en liste) som viser religionenes områder og tilstand på et kart. Hver oppføring er KOMPAKT:
+- "id": fast id per grunnreligion – bruk de SAMME id-ene som i NÅVÆRENDE VERDEN-TILSTAND, og ta alltid med alle grunnreligionene hver epoke. Ved schisme: ekstra oppføring med ny id (forelderens id + "_2").
+- "x" og "y" (0–100): posisjon. Endre gradvis mellom epoker.
+- "reach" (0–100): områdets størrelse. I World Dominion skal reach BEVEGE seg tydelig: den som dominerer vokser, den som presses krymper. Ikke hold dem kunstig like.
+- "av": null for grunnreligioner; ved schisme forelderens id.
+- "s": fem tall (0–100) i FAST rekkefølge: [samhold, frihet, velstand, toleranse, kunnskap]. De skal vise avveininger og prisen for valgene – f.eks. kan et dominerende samfunn ha høy velstand og lav frihet.
+
+Sett også "spenning" (0–100) på toppnivå – i World Dominion ligger den naturlig høyere enn i en fredelig verden.
+
+Svar KUN med gyldig JSON. Ikke bruk markdown, kodeblokker eller "...". Ikke skriv noe tekst utenfor JSON-objektet, og pass på at JSON-en er fullstendig og lukket.`;
+
 function byggMelding(){
-  const e = EPOKER[state.epokeIndex];
+  const EP = EPO();
+  const e = EP[state.epokeIndex];
   const stagedBase = state.verden.filter(c=>!c.splinterAv);
   const profiltekst = stagedBase.map(c=>{
     const p = state.poolById[c.id] || {};
@@ -762,7 +843,11 @@ function byggMelding(){
     ? `I forrige epoke valgte klassen: "${state.sisteValg}". Bygg videre på den konsekvensen.`
     : "";
 
-  return `EPOKE ${state.epokeIndex+1} av ${EPOKER.length}: ${e.tema}.
+  const erSisteDominion = state.modus==="dominion" && state.epokeIndex===EP.length-1;
+  const regnskapFelt = erSisteDominion ? `,
+  "regnskap": {"dominant":"<id-en til religionen som dominerer verden, eller null hvis ingen vant>","begrunnelse":"1-2 setninger om hvorfor akkurat denne religionens verdier vant fram","pris":"1-2 setninger om hva dominansen kostet verden","spor":"1 setning om hva fra de andre religionene som lever videre i det skjulte"}` : "";
+
+  return `EPOKE ${state.epokeIndex+1} av ${EP.length}: ${e.tema}.
 ${e.instr}
 
 RELIGIONENE I VERDEN:
@@ -790,7 +875,7 @@ Returner JSON med nøyaktig disse feltene (kompakt, fullstendig og lukket). I "v
   "kronikk": "kort sammendrag av alt som har skjedd (maks 2 setninger)",
   "relasjoner": "kort status (1 setning) på forholdet mellom religionene",
   "spenning": 35,
-  "verden": [{"id":"<en av id-ene over>","x":40,"y":40,"reach":18,"av":null,"s":[70,58,40,80,46]}]
+  "verden": [{"id":"<en av id-ene over>","x":40,"y":40,"reach":18,"av":null,"s":[70,58,40,80,46]}]${regnskapFelt}
 }`;
 }
 
@@ -818,8 +903,8 @@ async function kjorEpoke(){
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           model:"claude-sonnet-4-6",
-          max_tokens:1000,
-          system:SYSTEM,
+          max_tokens:1200,
+          system: state.modus==="dominion" ? SYSTEM_DOMINION : SYSTEM,
           messages:[{role:"user",content:byggMelding()}]
         })
       });
@@ -896,7 +981,7 @@ function visFeil(msg){
 }
 
 function renderEpoke(d){
-  const e = EPOKER[state.epokeIndex];
+  const e = EPO()[state.epokeIndex];
   const stage = document.getElementById("stage");
   const avsnitt = (d.fortelling||"").split(/\n\n+/).map(p=>`<p>${escapeHtml(p)}</p>`).join("");
 
@@ -914,6 +999,22 @@ function renderEpoke(d){
     html += `</div></div>`;
   }
   html += `</div>`;
+
+  if(d.regnskap){
+    const r = d.regnskap;
+    const domId = r.dominant && r.dominant!=="null" ? String(r.dominant) : null;
+    const domNavn = domId ? (state.navn[domId] || domId) : null;
+    const domFarge = domId && state.farge[domId] ? state.farge[domId] : "var(--gold)";
+    html += `<div class="regnskap">
+      <div class="tag">⚖ Verdens regnskap</div>
+      <h3>${domNavn ? `<span style="color:${domFarge}">${escapeHtml(domNavn)}</span> dominerer verden` : "Ingen vant verden"}</h3>
+      <dl>
+        ${r.begrunnelse?`<dt>Hvorfor</dt><dd>${escapeHtml(r.begrunnelse)}</dd>`:""}
+        ${r.pris?`<dt>Prisen</dt><dd>${escapeHtml(r.pris)}</dd>`:""}
+        ${r.spor?`<dt>Lever videre</dt><dd>${escapeHtml(r.spor)}</dd>`:""}
+      </dl>
+    </div>`;
+  }
 
   if(d.snakk_sammen){
     html += `<div class="snakk"><div class="tag">💬 Snakk sammen</div><p>${escapeHtml(d.snakk_sammen)}</p></div>`;
@@ -945,13 +1046,13 @@ function renderEpoke(d){
 }
 
 function gaaVidere(row){
-  const erSiste = state.epokeIndex >= EPOKER.length-1;
+  const erSiste = state.epokeIndex >= EPO().length-1;
   if(erSiste){
     const b = knapp("Start på nytt",()=>nullstill());
     b.classList.add("ghost");
     const note=document.createElement("span");
     note.style.cssText="font-family:'Fraunces',serif;font-size:18px;color:var(--gold-soft)";
-    note.textContent="Krøniken er fullført.";
+    note.textContent = state.modus==="dominion" ? "Regnskapet er gjort opp." : "Krøniken er fullført.";
     row.prepend(b);
     row.prepend(note);
   } else {

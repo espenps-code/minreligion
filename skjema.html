@@ -129,7 +129,7 @@
   <section id="dilemma" class="hidden">
     <div class="eyebrow">Tenk deg om</div>
     <h2 class="crest" style="font-size:clamp(22px,3.4vw,32px)">Fem situasjoner</h2>
-    <p class="lead" id="dilemmaLead">La oss teste religionen din i tre situasjoner fra livet.</p>
+    <p class="lead" id="dilemmaLead">La oss teste religionen din i fem situasjoner der valgene koster noe.</p>
     <div id="dilemmaHolder"></div>
     <div class="rad" id="dilemmaActions"></div>
   </section>
@@ -187,11 +187,11 @@ const SPORSMAL = [
   {felt:"moral", q:"Hvor kommer reglene for rett og galt fra?", valg:[
     "Fra en hellig bok eller skrift","Fra forfedrene og tradisjonen","Fra det vi tenker oss fram til selv","Fra hjertet og samvittigheten"]},
   {felt:"leveregler", q:"Hva er den viktigste leveregelen?", valg:[
-    "Del med alle, og ta bare det du trenger","Vær trofast og følg reglene","Søk sannhet og still spørsmål","Vær snill mot alt som lever"]},
+    "Del med alle, og ta bare det du trenger","Lydighet framfor alt – reglene brytes aldri","Søk sannhet og still spørsmål","Vær snill mot alt som lever"]},
   {felt:"tilgivelse", q:"Når noen har gjort noe galt, hva er rett?", valg:[
-    "Tilgi og gå videre","Gjøre det godt igjen","Få en rettferdig straff","Holdes utenfor en stund"]},
+    "Tilgi og gå videre","Gjøre det godt igjen","Få en rettferdig straff","Stenges ute til de har gjort opp for seg"]},
   {felt:"autoritet", q:"Hvem bestemmer i religionen din?", valg:[
-    "Ledere som tolker det hellige","De eldste og rådet sammen","Den som har det beste argumentet","Alle er like – ingen bestemmer over andre"]},
+    "Én øverste leder som har det siste ordet","De eldste og rådet sammen","Den som har det beste argumentet","Alle er like – ingen bestemmer over andre"]},
   {felt:"likeverd", q:"Hvem har en stemme hos dere?", valg:[
     "Alle har en plass og en stemme","Alle er like for det hellige","Alle stemmer teller likt i samtalen","De vise og erfarne leder de andre"]},
   {felt:"fellesskap", q:"Hva betyr mest hos dere?", valg:[
@@ -201,11 +201,11 @@ const SPORSMAL = [
   {felt:"endring", q:"Bør religionen forandre seg over tid?", valg:[
     "Nei, vi holder fast på det gamle","Ja, vi fornyer oss når vi lærer nytt","Vi tar gjerne inn det beste fra andre"]},
   {felt:"andre", q:"Hva tenker dere om folk som tror noe annet?", valg:[
-    "De bør få høre om vår vei","Alle er velkomne – vi er nysgjerrige på andre","Vi lever helst for oss selv","Vi respekterer alle, men holder på vårt"]},
+    "Alle bør til slutt følge vår vei – vi har sannheten","Alle er velkomne – vi er nysgjerrige på andre","Vi lever helst for oss selv","Vi respekterer alle, men holder på vårt"]},
   {felt:"fremmede", q:"En fremmed i nød ber om hjelp. Hva gjør dere?", valg:[
-    "Hjelper alltid, uansett hvem det er","Hjelper helst dem som er som oss","Er forsiktige til vi vet mer"]},
+    "Hjelper alltid, uansett hvem det er","Hjelper helst dem som er som oss","Avviser dem – våre egne kommer først"]},
   {felt:"konflikt", q:"Når dere er sterkt uenige med en annen gruppe?", valg:[
-    "Snakker til vi finner en løsning","Går hver til vårt, i fred","Står på vårt, uansett hva","Prøver å overbevise dem"]},
+    "Snakker til vi finner en løsning","Går hver til vårt, i fred","Kjemper for vår sak, koste hva det vil","Presser på til de gir seg"]},
   {felt:"natur", q:"Hva er forholdet til naturen?", valg:[
     "Naturen er en slektning vi hører til","Naturen er en gave vi skal ta vare på","Naturen skal forstås og brukes klokt","Naturen er hellig og må vernes"]},
   {felt:"ritualer", q:"Hvordan samles dere?", valg:[
@@ -296,12 +296,12 @@ document.getElementById("forrigeBtn").addEventListener("click",()=>{
 /* ---------- Dilemma (AI – fem situasjoner, én om gangen) ---------- */
 const MAL_DILEMMA = 5;
 const DILEMMA_TEMA = [
-  "deling, penger eller eiendeler",
-  "et møte med noen som tror noe helt annet",
-  "en regel som er vanskelig å følge i praksis",
-  "makt – hvem som skal bestemme",
-  "en konflikt mellom to grupper",
-  "naturen og hva som skjer med fremtiden"
+  "penger eller eiendeler – der det å følge religionen koster deg noe du gjerne vil ha",
+  "en venn som bryter en av reglene deres – lojalitet mot vennen eller mot religionen",
+  "urett begått av noen i din egen gruppe – si fra og skape bråk, eller beskytte dine egne",
+  "makt – du kan få mer å si hvis du gir slipp på noe religionen din står for",
+  "press fra flertallet – alle de andre vil noe samvittigheten din sier nei til",
+  "en fremmed i nød – å hjelpe koster gruppen din dyrt"
 ];
 let aktivtDilemma = null;
 
@@ -319,7 +319,7 @@ async function nesteDilemma(){
   const tidligere = dilemmasvar.length
     ? "Tidligere situasjoner og elevens valg:\n" + dilemmasvar.map((d,n)=>`${n+1}. ${d.sporsmal} → valgte: ${d.svar}`).join("\n")
     : "Ingen tidligere situasjoner ennå.";
-  const sys = `Du lager korte, alderstilpassede dilemmaer for et KRLE-opplegg på 7. trinn (12-åringer) i Norge. Du får en elevs oppdiktede religion. Lag ÉN dagligdags situasjon der religionens verdier settes på prøve, med ett spørsmål og tre svaralternativer som peker i ulik retning. Vær nøytral, ingen fasit, ikke grafisk. Skriv bokmål. Svar KUN med gyldig JSON, ingen markdown, ingen tekst utenfor JSON.`;
+  const sys = `Du lager korte, alderstilpassede dilemmaer for et KRLE-opplegg på 7. trinn (12-åringer) i Norge. Du får en elevs oppdiktede religion. Lag ÉN dagligdags situasjon der religionens verdier settes på ekte prøve – valget skal KOSTE noe uansett hva eleven velger. De tre svaralternativene skal peke i ulik retning og ha ulik pris (f.eks. skuffe en venn, bryte en regel, miste noe man ønsker seg, tape ansikt). Ikke lag tre like snille valg – la eleven kjenne at noe står på spill. Ingen fasit og ingen moralpeker: ikke hint om hvilket valg som er «riktig». Alderstilpasset, aldri grafisk eller skremmende. Skriv bokmål. Svar KUN med gyldig JSON, ingen markdown, ingen tekst utenfor JSON.`;
   const bruker = `Religionen "${profil.navn}". Verdier:
 gudsbilde=${profil.gudsbilde}; etterliv=${profil.etterliv}; lidelse=${profil.lidelse}; moral=${profil.moral}; leveregler=${profil.leveregler}; tilgivelse=${profil.tilgivelse}; autoritet=${profil.autoritet}; likeverd=${profil.likeverd}; fellesskap=${profil.fellesskap}; rikdom=${profil.rikdom}; endring=${profil.endring}; syn på andre=${profil.andre}; fremmede=${profil.fremmede}; konflikt=${profil.konflikt}; natur=${profil.natur}; ritualer=${profil.ritualer}; viktigst=${profil.kjerne}.
 
