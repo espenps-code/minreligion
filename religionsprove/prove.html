@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C9586B'/%3E%3Crect x='17' y='12' width='30' height='42' rx='5' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Crect x='25' y='8' width='14' height='8' rx='3' fill='%23fff'/%3E%3Cpath d='M24 33l6 6 11-12' fill='none' stroke='%23fff' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Religionsprøven</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,7 +142,7 @@
   <section id="s-kode" class="hidden">
     <div class="mosaikk" id="mosaikk"></div>
     <div class="kodekort">
-      <div class="eyebrow">KRLE · De fem store religionene</div>
+      <div class="eyebrow" id="kodeEyebrow">KRLE-prøve</div>
       <h1>Klar for prøve?</h1>
       <p class="lead">Skriv inn koden du har fått av læreren.</p>
       <input id="kode" class="kodefelt" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC23" aria-label="Din kode">
@@ -151,9 +152,9 @@
   </section>
 
   <section id="s-trekk" class="hidden midt">
-    <div class="eyebrow">Hvilken religion får du?</div>
-    <h1>Trekk din religion</h1>
-    <p class="lead">Du får 10 spørsmål om én av religionene. Trykk på knappen – så bestemmer tilfeldighetene!</p>
+    <div class="eyebrow" id="trekkEyebrow">Hvilken religion får du?</div>
+    <h1 id="trekkTit">Trekk din religion</h1>
+    <p class="lead" id="trekkLead">Du får 10 spørsmål om én av religionene. Trykk på knappen – så bestemmer tilfeldighetene!</p>
     <div class="trekk-rad" id="trekkRad"></div>
     <button class="btn" id="trekkBtn">Trekk min religion!</button>
     <div class="status" id="trekkStatus"></div>
@@ -225,15 +226,21 @@ let prove=null, kode="", doc=null, aktiv=0, lagreTimer=null;
 const SKJERMER=["s-laster","s-feil","s-kode","s-trekk","s-avslor","s-sp","s-oversikt","s-ferdig"];
 function vis(id){ SKJERMER.forEach(s=>$(s).classList.toggle("hidden", s!==id)); window.scrollTo({top:0,behavior:"smooth"}); }
 function feil(tit, tekst){ $("feilTit").textContent=tit; $("feilTekst").textContent=tekst; vis("s-feil"); }
-function settRel(rel){ document.documentElement.style.setProperty("--rel", RELIGIONER[rel].farge); }
+function settRel(rel){ document.documentElement.style.setProperty("--rel", temaInfo(prove, rel).farge); }
+const N = () => (doc && doc.sporsmal ? doc.sporsmal.length : proveAntall(prove));
+const erInnebygd = () => !(prove && prove.egne);
 
 /* ---------- Oppstart ---------- */
 (async function(){
-  $("mosaikk").innerHTML = REL_NOKLER.map(r=>`<img src="${relBilde(r,1)}" alt="${RELIGIONER[r].navn}">`).join("");
   if(!Lager.klar) return feil("Klarte ikke å koble til","Prøv å laste siden på nytt. Hvis det ikke hjelper: si fra til læreren.");
   if(!PID) return feil("Mangler prøvelenke","Åpne lenken du fikk av læreren.");
   try{ prove = await Lager.hentProve(PID); }catch(e){ return feil("Klarte ikke å hente prøven","Sjekk nettet og last siden på nytt."); }
   if(!prove) return feil("Fant ikke prøven","Sjekk at du har fått riktig lenke fra læreren.");
+  PROVE_CTX = prove;
+  const mos = erInnebygd() ? REL_NOKLER : proveTemaer(prove).slice(0,6);
+  $("mosaikk").style.gridTemplateColumns = `repeat(${mos.length},1fr)`;
+  $("mosaikk").innerHTML = mos.map(r=>`<img src="${temaBilde(prove,r,1)}" alt="${esc(temaInfo(prove,r).navn)}">`).join("");
+  if(!erInnebygd()) $("kodeEyebrow").textContent = "KRLE-prøve · " + temaNavnListe(prove);
   $("proveTittel").textContent = prove.tittel || "Prøve";
   document.title = (prove.tittel||"Prøve") + " – Krøniken";
   if(!prove.aktiv) return feil("Prøven er stengt","Læreren har ikke åpnet prøven ennå – eller den er ferdig.");
@@ -254,24 +261,35 @@ $("kodeBtn").addEventListener("click", async ()=>{
     kode=k; $("merke").innerHTML = `Kode <b>${esc(k)}</b>`; st("kodeStatus","",null);
     if(r.status==="levert") return feil("Du har allerede levert","Denne koden er brukt. Snakk med læreren hvis du tror noe er feil.");
     if(r.status==="igang"){ doc=r.data; return visAvslor(true); }
+    if(proveModus(prove)==="blandet" || proveTemaer(prove).length<2){
+      // Ingen trekning: blandet prøve, eller bare ett tema
+      const ny = nyttSvarDoc(prove, kode, proveTemaer(prove)[0]);
+      await Lager.startSvar(PID,kode,ny); doc=ny; return visAvslor(false);
+    }
     visTrekk();
   }catch(e){ st("kodeStatus","Noe gikk galt. Sjekk nettet og prøv igjen.",false); }
   finally{ $("kodeBtn").disabled=false; }
 });
 
 /* ---------- Trekk ---------- */
-function mulige(){ const r=(prove.religioner||[]).filter(x=>RELIGIONER[x]); return r.length?r:REL_NOKLER; }
+function mulige(){ return proveTemaer(prove); }
 function visTrekk(){
-  const rels=REL_NOKLER;
-  $("trekkRad").innerHTML = rels.map(r=>`<div class="tkort ${mulige().includes(r)?"":"taper"}" data-r="${r}" style="--c:${RELIGIONER[r].farge}">
-    <img src="${relBilde(r,1)}" alt=""><div class="nv">${RELIGIONER[r].navn}</div></div>`).join("");
+  const rels = erInnebygd() ? REL_NOKLER : mulige();
+  const n = proveAntall(prove);
+  if(!erInnebygd()){
+    $("trekkEyebrow").textContent="Hvilket tema får du?"; $("trekkTit").textContent="Trekk ditt tema"; $("trekkBtn").textContent="Trekk mitt tema!";
+    $("trekkLead").textContent=`Du får ${n} spørsmål om ett av temaene. Trykk på knappen – så bestemmer tilfeldighetene!`;
+  } else $("trekkLead").textContent=`Du får ${n} spørsmål om én av religionene. Trykk på knappen – så bestemmer tilfeldighetene!`;
+  $("trekkRad").style.gridTemplateColumns = rels.length>=5 ? "repeat(5,1fr)" : `repeat(${rels.length},minmax(0,190px))`;
+  $("trekkRad").style.justifyContent = "center";
+  $("trekkRad").innerHTML = rels.map(r=>{ const T=temaInfo(prove,r); return `<div class="tkort ${mulige().includes(r)?"":"taper"}" data-r="${r}" style="--c:${T.farge}">
+    <img src="${temaBilde(prove,r,1)}" alt=""><div class="nv">${esc(T.navn)}</div></div>`; }).join("");
   vis("s-trekk");
 }
 $("trekkBtn").addEventListener("click", async ()=>{
   $("trekkBtn").disabled=true; st("trekkStatus","",null);
   const rel = tilfeldig(mulige());
-  const sporsmal = stokk([...Array(BANK[rel].length).keys()]).slice(0,ANTALL_SPORSMAL);
-  const ny = {kode, religion:rel, sporsmal, svar:Array(ANTALL_SPORSMAL).fill(null), levert:false, startet:Date.now()};
+  const ny = nyttSvarDoc(prove, kode, rel);
   try{ await Lager.startSvar(PID,kode,ny); }
   catch(e){ $("trekkBtn").disabled=false; return st("trekkStatus","Klarte ikke å starte prøven. Kanskje den er stengt? Si fra til læreren.",false); }
   doc=ny;
@@ -300,32 +318,37 @@ function animerTrekk(mal){
 
 /* ---------- Avsløring ---------- */
 function visAvslor(fortsett){
-  const R=RELIGIONER[doc.religion]; settRel(doc.religion);
-  $("avslorBilde").src=relBilde(doc.religion,1); $("avslorNavn").textContent=R.navn;
+  const blandet = doc.religion==="_blandet", R=temaInfo(prove,doc.religion); settRel(doc.religion);
+  const navn = blandet ? (prove.tittel||"Prøve") : R.navn;
+  $("avslorBilde").src = blandet ? temaBilde(prove, proveTemaer(prove)[0], 1) : temaBilde(prove,doc.religion,1);
+  $("avslorNavn").textContent=navn;
   const besvart=(doc.svar||[]).filter(v=>v!=null).length;
+  const om = blandet ? `fra ${esc(temaNavnListe(prove))}` : (erInnebygd() ? `om ${esc(R.navn.toLowerCase())}` : `om «${esc(R.navn)}»`);
   $("avslorTekst").innerHTML = fortsett
-    ? `Velkommen tilbake! Du holder på med <b>${R.navn}</b> og har svart på ${besvart} av ${ANTALL_SPORSMAL} spørsmål.`
-    : `Du skal svare på <b>${ANTALL_SPORSMAL} spørsmål om ${R.navn.toLowerCase()}</b>. Svarene lagres underveis, og du kan gå fram og tilbake og endre før du leverer.`;
+    ? `Velkommen tilbake! Du holder på med <b>${esc(navn)}</b> og har svart på ${besvart} av ${N()} spørsmål.`
+    : `Du skal svare på <b>${N()} spørsmål ${om}</b>. Svarene lagres underveis, og du kan gå fram og tilbake og endre før du leverer.`;
   $("startBtn").textContent = fortsett ? "Fortsett prøven →" : "Start prøven →";
   vis("s-avslor");
 }
 $("startBtn").addEventListener("click", ()=>{
   const forste = doc.svar.findIndex(v=>v==null);
   aktiv = forste<0 ? 0 : forste;
-  $("chipBilde").src=relBilde(doc.religion,1); $("chipNavn").textContent=RELIGIONER[doc.religion].navn;
+  const blandet = doc.religion==="_blandet";
+  $("chipBilde").src = blandet ? temaBilde(prove, proveTemaer(prove)[0], 1) : temaBilde(prove,doc.religion,1);
+  $("chipNavn").textContent = blandet ? (prove.tittel||"Prøve") : temaInfo(prove,doc.religion).navn;
   if(forste<0) visOversikt(); else visSp();
 });
 
 /* ---------- Spørsmål ---------- */
 function visSp(){
-  const qi=doc.sporsmal[aktiv], q=BANK[doc.religion][qi];
-  $("spNr").textContent=`Spørsmål ${aktiv+1} av ${ANTALL_SPORSMAL}`;
+  const h=hentSp(prove,doc,aktiv), q=h.q, blandet=doc.religion==="_blandet";
+  $("spNr").textContent=`Spørsmål ${aktiv+1} av ${N()}` + (blandet ? ` · ${temaInfo(prove,h.tema).navn}` : "");
   $("spTekst").textContent=q.s;
-  $("spBilde").src=relBilde(doc.religion, 2 + (aktiv % 6));
+  $("spBilde").src=temaBilde(prove, h.tema, 2 + (aktiv % 6));
   $("svarliste").innerHTML = q.a.map((a,i)=>`<button class="svar ${doc.svar[aktiv]===i?"valgt":""}" data-i="${i}"><span class="bokst">${"ABCD"[i]}</span><span>${esc(a)}</span></button>`).join("");
   $("prikker").innerHTML = doc.sporsmal.map((_,i)=>`<button class="prikk ${doc.svar[i]!=null?"besvart":""} ${i===aktiv?"her":""}" data-i="${i}" aria-label="Spørsmål ${i+1}">${i+1}</button>`).join("");
   $("forrigeBtn").style.visibility = aktiv===0?"hidden":"visible";
-  $("nesteBtn").textContent = aktiv===ANTALL_SPORSMAL-1 ? "Se over svarene →" : "Neste →";
+  $("nesteBtn").textContent = aktiv===N()-1 ? "Se over svarene →" : "Neste →";
   if($("s-sp").classList.contains("hidden")) vis("s-sp");
 }
 $("svarliste").addEventListener("click", e=>{
@@ -335,11 +358,11 @@ $("svarliste").addEventListener("click", e=>{
 function velg(i){
   doc.svar[aktiv]=i; visSp(); planleggLagring();
   clearTimeout(velg.t);
-  velg.t=setTimeout(()=>{ if(aktiv<ANTALL_SPORSMAL-1 && doc.svar[aktiv]===i){ aktiv++; visSp(); } }, 550);
+  velg.t=setTimeout(()=>{ if(aktiv<N()-1 && doc.svar[aktiv]===i){ aktiv++; visSp(); } }, 550);
 }
 $("prikker").addEventListener("click", e=>{ const b=e.target.closest(".prikk"); if(!b) return; clearTimeout(velg.t); aktiv=+b.dataset.i; visSp(); });
 $("forrigeBtn").addEventListener("click", ()=>{ clearTimeout(velg.t); if(aktiv>0){ aktiv--; visSp(); } });
-$("nesteBtn").addEventListener("click", ()=>{ clearTimeout(velg.t); if(aktiv<ANTALL_SPORSMAL-1){ aktiv++; visSp(); } else visOversikt(); });
+$("nesteBtn").addEventListener("click", ()=>{ clearTimeout(velg.t); if(aktiv<N()-1){ aktiv++; visSp(); } else visOversikt(); });
 document.addEventListener("keydown", e=>{
   if($("s-sp").classList.contains("hidden") || e.target.tagName==="INPUT") return;
   const k=e.key.toUpperCase(); const map={"1":0,"2":1,"3":2,"4":3,"A":0,"B":1,"C":2,"D":3};
@@ -361,8 +384,8 @@ function planleggLagring(){
 function visOversikt(){
   const mangler = doc.svar.filter(v=>v==null).length;
   $("ovTekst").textContent = mangler ? `Du mangler svar på ${mangler} spørsmål. Trykk på et spørsmål for å gå til det.` : "Du har svart på alle spørsmålene. Trykk på et spørsmål hvis du vil endre svaret.";
-  $("ovliste").innerHTML = doc.sporsmal.map((qi,i)=>{
-    const q=BANK[doc.religion][qi], v=doc.svar[i];
+  $("ovliste").innerHTML = doc.sporsmal.map((_,i)=>{
+    const q=hentSp(prove,doc,i).q, v=doc.svar[i];
     return `<li data-i="${i}" class="${v==null?"mangler":""}"><span class="n">${i+1}.</span><div><div class="q">${esc(q.s)}</div><div class="a">${v==null?"Ikke besvart":esc(q.a[v])}</div></div></li>`;
   }).join("");
   $("leverBtn").textContent="Lever prøven"; $("leverBtn").dataset.bekreft=""; st("leverStatus","",null);
@@ -389,11 +412,11 @@ $("leverBtn").addEventListener("click", async ()=>{
 });
 function visFerdig(riktige){
   if(prove.visResultat){
-    const p=Math.round(riktige/ANTALL_SPORSMAL*100);
-    $("ferdigResultat").innerHTML = `<div class="poengring" style="--p:${p}"><span>${riktige}</span><small>av ${ANTALL_SPORSMAL}</small></div>
-      <p class="lead">${riktige>=9?"Kjempebra jobbet!":riktige>=7?"Godt jobbet!":riktige>=5?"Bra innsats!":"Takk for innsatsen – se gjennomgangen under."}</p>`;
-    $("fasitliste").innerHTML = doc.sporsmal.map((qi,i)=>{
-      const q=BANK[doc.religion][qi], v=doc.svar[i], f=fasit(doc.religion,qi), ok=v===f;
+    const p=Math.round(riktige/N()*100);
+    $("ferdigResultat").innerHTML = `<div class="poengring" style="--p:${p}"><span>${riktige}</span><small>av ${N()}</small></div>
+      <p class="lead">${p>=90?"Kjempebra jobbet!":p>=70?"Godt jobbet!":p>=50?"Bra innsats!":"Takk for innsatsen – se gjennomgangen under."}</p>`;
+    $("fasitliste").innerHTML = doc.sporsmal.map((_,i)=>{
+      const h=hentSp(prove,doc,i), q=h.q, v=doc.svar[i], f=h.f, ok=v===f;
       return `<li style="cursor:default"><span class="n">${i+1}.</span><div><div class="q">${esc(q.s)}</div>
         <div class="a">Ditt svar: ${v==null?"<i>ikke besvart</i>":esc(q.a[v])}${ok?"":` · <b style="color:#7fd6c4">Riktig: ${esc(q.a[f])}</b>`}</div></div>
         <span class="merk ${ok?"rett":"galt"}">${ok?"✓":"✗"}</span></li>`;

@@ -57,9 +57,10 @@ function lagKoder(antall, unngaa){
   }
   return ut;
 }
-function riktigeAv(svarDoc){
+function riktigeAv(svarDoc, p){
+  p = p || PROVE_CTX;
   if(!svarDoc || !svarDoc.sporsmal) return 0;
-  let n=0; svarDoc.sporsmal.forEach((qi,i)=>{ const v=(svarDoc.svar||[])[i]; if(v!=null && v===fasit(svarDoc.religion,qi)) n++; });
+  let n=0; svarDoc.sporsmal.forEach((_,i)=>{ const v=(svarDoc.svar||[])[i]; if(v!=null && v===hentSp(p,svarDoc,i).f) n++; });
   return n;
 }
 function datoTekst(ms){ if(!ms) return ""; const d=new Date(ms); return d.toLocaleDateString("nb-NO",{day:"numeric",month:"long",year:"numeric"}); }
@@ -92,24 +93,32 @@ function lagFirebaseLager(){
       const s = await db.collection("prover").where("eier","==",uid).get();
       const ut=[]; s.forEach(d=>ut.push(Object.assign({id:d.id}, d.data()))); return ut;
     },
-    async nyProve(data, koder){
+    async nyProve(data, koder, elevIder){
       const ref = db.collection("prover").doc();
       await ref.set(data);
-      await this.leggTilKoder(ref.id, koder, 1);
+      await this.leggTilKoder(ref.id, koder, 1, elevIder);
       return ref.id;
     },
-    async leggTilKoder(id, koder, startNr){
+    async leggTilKoder(id, koder, startNr, elevIder){
       for(let i=0;i<koder.length;i+=400){
         const b=db.batch();
-        koder.slice(i,i+400).forEach((k,j)=>b.set(P(id).collection("koder").doc(k), {nr:startNr+i+j}));
+        koder.slice(i,i+400).forEach((k,j)=>{
+          const d={nr:startNr+i+j}; const e=elevIder&&elevIder[i+j]; if(e) d.elevId=e;   // elevId peker på eleven i «Mine grupper» – ikke navnet
+          b.set(P(id).collection("koder").doc(k), d);
+        });
         await b.commit();
       }
+    },
+    async mineGrupper(uid){
+      const s=await db.collection("aa_grupper").where("eier","==",uid).get(); const ut=[];
+      s.forEach(d=>{ const x=d.data()||{}; ut.push({id:d.id, navn:x.navn||"Gruppe", elever:Array.isArray(x.elever)?x.elever:[]}); });
+      return ut.sort((a,b)=>a.navn.localeCompare(b.navn,"nb"));
     },
     async hentProve(id){ const d=await P(id).get(); return d.exists ? Object.assign({id:d.id}, d.data()) : null; },
     oppdaterProve(id, patch){ return P(id).update(patch); },
     async hentKoder(id){
       const s=await P(id).collection("koder").get(); const ut=[];
-      s.forEach(d=>ut.push({kode:d.id, nr:(d.data()||{}).nr||0})); ut.sort((a,b)=>a.nr-b.nr); return ut;
+      s.forEach(d=>{ const x=d.data()||{}; ut.push({kode:d.id, nr:x.nr||0, elevId:x.elevId||null}); }); ut.sort((a,b)=>a.nr-b.nr); return ut;
     },
     lyttSvar(id, cb, feil){
       return P(id).collection("svar").onSnapshot(s=>{ const ut={}; s.forEach(d=>ut[d.id]=d.data()); cb(ut); }, e=>feil&&feil(e));
@@ -169,11 +178,17 @@ function lagDemoLager(){
     loginGoogle(){ return Promise.resolve(); }, loginEpost(){ return Promise.resolve(); },
     loggUt(){ location.href=location.pathname; return Promise.resolve(); },
     async mineProver(uid){ const d=les(); return Object.entries(d.prover).filter(([,p])=>p.eier===uid).map(([id,p])=>{ const x=kopi(p); delete x.koder; delete x.svar; x.id=id; return x; }); },
-    async nyProve(data, koder){ const d=les(), id="p"+Date.now().toString(36); d.prover[id]=Object.assign(kopi(data),{opprettet:Date.now(),koder:{},svar:{}}); skriv(d); await this.leggTilKoder(id,koder,1); return id; },
-    async leggTilKoder(id,koder,startNr){ const d=les(); koder.forEach((k,i)=>d.prover[id].koder[k]={nr:startNr+i}); skriv(d); varsle(); },
+    async nyProve(data, koder, elevIder){ const d=les(), id="p"+Date.now().toString(36); d.prover[id]=Object.assign(kopi(data),{opprettet:Date.now(),koder:{},svar:{}}); skriv(d); await this.leggTilKoder(id,koder,1,elevIder); return id; },
+    async leggTilKoder(id,koder,startNr,elevIder){ const d=les(); koder.forEach((k,i)=>{ d.prover[id].koder[k]={nr:startNr+i}; if(elevIder&&elevIder[i]) d.prover[id].koder[k].elevId=elevIder[i]; }); skriv(d); varsle(); },
+    async mineGrupper(){
+      let g=lsGet("rp_demo_grupper",null);
+      if(!g){ const nv=["Aksel","Amina","Ask","Ella","Emil","Filip","Hedda","Ibrahim","Ingrid","Jonas","Kasper","Leah","Linnea","Magnus","Maja","Noah","Nora","Oliver","Sara","Selma","Sofie","Theo","William","Yusuf"];
+        g=[{id:"demogr", navn:"7B (demo)", elever:nv.map((n,i)=>({id:"e"+i, navn:n}))}]; lsSet("rp_demo_grupper",g); }
+      return g;
+    },
     async hentProve(id){ const p=les().prover[id]; if(!p) return null; const x=kopi(p); delete x.koder; delete x.svar; x.id=id; return x; },
     async oppdaterProve(id,patch){ const d=les(); Object.assign(d.prover[id],patch); skriv(d); },
-    async hentKoder(id){ const p=les().prover[id]; return Object.entries(p.koder).map(([kode,v])=>({kode,nr:v.nr})).sort((a,b)=>a.nr-b.nr); },
+    async hentKoder(id){ const p=les().prover[id]; return Object.entries(p.koder).map(([kode,v])=>({kode,nr:v.nr,elevId:v.elevId||null})).sort((a,b)=>a.nr-b.nr); },
     lyttSvar(id, cb){ const f=()=>{ const p=les().prover[id]; cb(p?kopi(p.svar):{}); }; lyttere.push(f); f(); const t=setInterval(f,2000); return ()=>{ clearInterval(t); const i=lyttere.indexOf(f); if(i>=0) lyttere.splice(i,1); }; },
     async nullstill(id,kode){ const d=les(); delete d.prover[id].svar[kode]; skriv(d); varsle(); },
     async slettProve(id){ const d=les(); delete d.prover[id]; skriv(d); try{ localStorage.removeItem("rp_navn_"+id); }catch(e){} },
@@ -185,3 +200,112 @@ function lagDemoLager(){
 }
 
 const Lager = ER_DEMO ? lagDemoLager() : lagFirebaseLager();
+
+
+/* ============================================================
+   TEMAER – de innebygde religionene ELLER egne temaer fra CSV
+     prove.egne       = { nøkkel: {navn, farge, mork, lys, sp:[{s, a:[…], k}]} }  (k kodet som i BANK)
+     prove.religioner = valgte temanøkler
+     prove.modus      = "tilfeldig" (hver elev trekker ett tema) | "blandet" (spørsmål fra alle temaene)
+     prove.antall     = antall spørsmål (standard 10)
+   Svar-dokument: religion = temanøkkel, eller "_blandet" – da peker sporsmal[] på flatListe(prove).
+   Gamle prøver uten disse feltene virker som før.
+   ============================================================ */
+var PROVE_CTX = null;   // prøven som vises nå (settes av sidene)
+var EGNE_FARGER = [
+  ["#7C8CE0","#33408a","#e4e8fa"],["#4FB8A8","#1f6b60","#dcf2ee"],["#E8B04B","#8a6414","#fbefd6"],
+  ["#C9586B","#7a2535","#f7e0e5"],["#9a6fd1","#4d2f7a","#ece3f8"],["#5aa0d8","#1f4f7a","#deedf8"],
+  ["#d98a4a","#7a4318","#f8e8da"],["#6aa84f","#2f5e1f","#e4f1de"]
+];
+var MAKS_SPORSMAL = 50;
+function proveAntall(p){ return Math.max(1, Math.min(MAKS_SPORSMAL, (p && p.antall) || ANTALL_SPORSMAL)); }
+function proveModus(p){ return p && p.modus==="blandet" ? "blandet" : "tilfeldig"; }
+function proveTemaer(p){
+  if(p && p.egne){ const ks=(p.religioner||[]).filter(k=>p.egne[k]); return ks.length ? ks : Object.keys(p.egne); }
+  const r=((p && p.religioner)||[]).filter(k=>RELIGIONER[k]); return r.length ? r : REL_NOKLER;
+}
+function temaInfo(p, key){
+  if(p && p.egne && p.egne[key]){ const t=p.egne[key]; return {key, navn:t.navn, farge:t.farge, mork:t.mork, lys:t.lys, egen:true}; }
+  if(key==="_blandet") return {key, navn:"Blandet", farge:"#E8B04B", mork:"#8a6414", lys:"#fbefd6", blandet:true};
+  const R=RELIGIONER[key] || {navn:String(key), farge:"#E8B04B", mork:"#8a6414", lys:"#fbefd6"};
+  return Object.assign({key}, R);
+}
+function temaNavnListe(p){
+  const n=proveTemaer(p).map(k=>temaInfo(p,k).navn);
+  return n.length<2 ? n.join("") : n.slice(0,-1).join(", ")+" og "+n[n.length-1];
+}
+function temaBank(p, key){ return (p && p.egne && p.egne[key]) ? (p.egne[key].sp||[]) : (BANK[key]||[]); }
+/* Bilde: de innebygde religionene har egne bilder – egne temaer får en farget flis med forbokstav */
+function temaBilde(p, key, n){
+  if(RELIGIONER[key] && !(p && p.egne && p.egne[key])) return relBilde(key, n||1);
+  const t=temaInfo(p, key), navn=(t.navn||"?").trim(), tall=(navn.match(/\d+/)||[""])[0].slice(0,2);
+  const b=esc((navn.charAt(0).toUpperCase()||"?")+tall), fs=b.length>2?110:b.length>1?130:150;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.farge}"/><stop offset="1" stop-color="${t.mork}"/></linearGradient></defs><rect width="300" height="300" fill="url(#g)"/><circle cx="245" cy="55" r="95" fill="#fff" opacity=".09"/><circle cx="35" cy="270" r="75" fill="#fff" opacity=".07"/><text x="150" y="${150+fs*0.31}" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="${fs}" fill="#fff" opacity=".93">${b}</text></svg>`;
+  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+}
+function kodFasit(k, i){ return ((k - i*3 - 7) % 4 + 8) % 4; }
+function kodFasitInn(f, i){ return ((f + i*3 + 7) % 4 + 4) % 4; }
+function flatListe(p){ const ut=[]; proveTemaer(p).forEach(k=>temaBank(p,k).forEach((_,i)=>ut.push([k,i]))); return ut; }
+function spRef(p, doc, i){
+  const qi=doc.sporsmal[i];
+  if(doc.religion==="_blandet"){ const f=flatListe(p)[qi]||[null,0]; return {tema:f[0], idx:f[1]}; }
+  return {tema:doc.religion, idx:qi};
+}
+function hentSp(p, doc, i){
+  const r=spRef(p, doc, i), q=temaBank(p, r.tema)[r.idx];
+  if(!q) return {q:{s:"(Spørsmålet finnes ikke lenger)", a:[]}, f:-1, tema:r.tema};
+  return {q, f:kodFasit(q.k, r.idx), tema:r.tema};
+}
+/* Lager et nytt svar-dokument for eleven */
+function nyttSvarDoc(p, kode, tema){
+  const n=proveAntall(p);
+  let religion, sporsmal;
+  if(proveModus(p)==="blandet"){ religion="_blandet"; sporsmal=stokk([...Array(flatListe(p).length).keys()]).slice(0,n); }
+  else { religion=tema; sporsmal=stokk([...Array(temaBank(p,tema).length).keys()]).slice(0,n); }
+  return {kode, religion, sporsmal, svar:Array(sporsmal.length).fill(null), levert:false, startet:Date.now()};
+}
+
+/* ---------- CSV: Blooket-format eller enkel mal ---------- */
+function lesCSV(tekst){
+  tekst=String(tekst||"").replace(/^﻿/,"");
+  // Finn skilletegn: det som forekommer oftest utenfor anførselstegn i starten av fila
+  const tell={",":0,";":0,"\t":0}; let iq=false;
+  for(let i=0;i<Math.min(tekst.length,3000);i++){ const c=tekst[i]; if(c==='"') iq=!iq; else if(!iq && c in tell) tell[c]++; }
+  const sk=Object.keys(tell).sort((a,b)=>tell[b]-tell[a])[0];
+  const rader=[]; let rad=[], felt="", q=false;
+  for(let i=0;i<tekst.length;i++){
+    const c=tekst[i];
+    if(q){ if(c==='"'){ if(tekst[i+1]==='"'){ felt+='"'; i++; } else q=false; } else felt+=c; }
+    else if(c==='"') q=true;
+    else if(c===sk){ rad.push(felt); felt=""; }
+    else if(c==="\n"||c==="\r"){ if(c==="\r"&&tekst[i+1]==="\n") i++; rad.push(felt); rader.push(rad); rad=[]; felt=""; }
+    else felt+=c;
+  }
+  if(felt!==""||rad.length){ rad.push(felt); rader.push(rad); }
+  return rader;
+}
+function tolkSporsmalCSV(tekst){
+  const rader=lesCSV(tekst).map(r=>r.map(c=>String(c).replace(/\s+/g," ").trim()));
+  let h=rader.findIndex(r=>r.some(c=>/question text|^spørsmål/i.test(c)));
+  let iS=0, iA=[1,2,3,4], iK=5;
+  if(h>=0){
+    const hr=rader[h].map(c=>c.toLowerCase());
+    iS=hr.findIndex(c=>/question text|^spørsmål/.test(c));
+    iA=[]; hr.forEach((c,i)=>{ if(/^(answer|svar|alternativ) ?\d/.test(c)) iA.push(i); });
+    iK=hr.findIndex(c=>/correct|riktig|fasit/.test(c));
+  }
+  const sp=[], feil=[];
+  rader.slice(h+1).forEach((r,n)=>{
+    const s=r[iS]; if(!s || r.every(c=>!c)) return;
+    let a=iA.map(i=>r[i]||""); while(a.length && !a[a.length-1]) a.pop();
+    a=a.slice(0,4);
+    const m=String(r[iK]||"").match(/\d+/), f=m?parseInt(m[0],10)-1:-1;
+    if(a.length<2 || a.some(x=>!x) || f<0 || f>=a.length){ feil.push(h+2+n); return; }
+    sp.push({s, a, f});
+  });
+  return {sp, feil};
+}
+function temaNavnFraFil(filnavn){
+  return String(filnavn||"Tema").replace(/\.csv$/i,"").replace(/^blooket[_\- ]*/i,"").replace(/[_\-]+/g," ")
+    .replace(/\buke ?(\d+) +(?=\S)/i,"uke $1 – ").replace(/\s+/g," ").trim() || "Tema";
+}

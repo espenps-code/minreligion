@@ -22,7 +22,8 @@
           && exists(/databases/$(database)/documents/prover/$(pid)/koder/$(kode))
           && request.resource.data.kode == kode
           && request.resource.data.levert == false
-          && request.resource.data.sporsmal.size() == 10;
+          && request.resource.data.sporsmal.size() >= 1
+          && request.resource.data.sporsmal.size() <= 50;
         allow update: if prove().aktiv == true
           && resource.data.levert == false
           && request.resource.data.kode == resource.data.kode

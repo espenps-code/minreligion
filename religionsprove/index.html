@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C9586B'/%3E%3Crect x='17' y='12' width='30' height='42' rx='5' fill='none' stroke='%23fff' stroke-width='5'/%3E%3Crect x='25' y='8' width='14' height='8' rx='3' fill='%23fff'/%3E%3Cpath d='M24 33l6 6 11-12' fill='none' stroke='%23fff' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Religionsprøven – lærerportal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,7 +101,9 @@
   .tom{font-size:14px;color:var(--dim);padding:8px 0}
 
   /* Ny prøve */
-  .skjema{display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:14px;margin-bottom:12px}
+  .skjema{display:grid;grid-template-columns:1.8fr 1.3fr .8fr 1.3fr;gap:14px;margin-bottom:12px}
+  label.felt a{font-weight:400;font-size:12px;margin-left:6px}
+  td input.fragruppe{background:transparent;border-color:transparent;color:var(--parchment);cursor:default}
   .relvalg{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:6px 0 10px}
   .relvalg label{position:relative;border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid var(--line);opacity:.5;transition:opacity .15s,border-color .15s}
   .relvalg label.pa{opacity:1;border-color:var(--c)}
@@ -153,6 +156,31 @@
   .faresone{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
 
   @media (max-width:860px){ .hero{grid-template-columns:1fr} .steg{grid-template-columns:1fr} .skjema{grid-template-columns:1fr} .tall{grid-template-columns:repeat(2,1fr)} .tall .fordeling{grid-column:1/-1} .relvalg{grid-template-columns:repeat(3,1fr)} }
+
+  /* Ny prøve: kilde, CSV, innstillinger */
+  .kildevalg{display:flex;gap:8px;margin:4px 0 12px;flex-wrap:wrap}
+  .kildevalg label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 15px;cursor:pointer;font-weight:700;font-size:14px}
+  .kildevalg label.pa{border-color:var(--gold);background:rgba(232,176,75,.12);color:var(--gold-soft)}
+  .kildevalg input{accent-color:var(--gold);margin:0}
+  .csvsone{border:2px dashed rgba(232,176,75,.45);border-radius:14px;padding:18px;text-align:center;margin:4px 0 10px;transition:background .15s}
+  .csvsone.over{background:rgba(232,176,75,.10)}
+  .csvsone p{margin:0 0 12px;color:var(--dim);font-size:14px}
+  .csvsone .rad{justify-content:center}
+  .temaliste{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+  .temarad{display:flex;align-items:center;gap:12px;background:var(--night);border:1px solid var(--line);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
+  .temarad img{width:38px;height:38px;border-radius:9px;flex-shrink:0}
+  .temarad input[type=text]{flex:1;min-width:160px;padding:7px 10px}
+  .temarad .n{font-size:13px;color:var(--dim);white-space:nowrap}
+  .temarad .adv{font-size:12.5px;color:#e69aa8;white-space:nowrap;cursor:help}
+  .innst{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 6px}
+  .innst .boks{background:var(--night);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .innst .boks .sjekk{margin:0}
+  .innst .boks .hint{margin:7px 0 0;font-size:12.5px}
+  .fordeling .fr .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fordeling .fr .c{width:auto;min-width:52px;white-space:nowrap}
+  @media (max-width:860px){ .innst{grid-template-columns:1fr} }
+  .ark.en .halv{height:297mm;font-size:10.2pt}
+  .ark.en .spgrid{row-gap:4.5mm}
 
   /* ============ UTSKRIFT ============ */
   #utskrift{display:none}
@@ -222,8 +250,8 @@
   <div class="topbar">
     <div class="brand">
       <span class="navn">Krøniken<span class="d">.</span></span>
-      <span class="sub">Prøveportal · De fem store religionene</span>
-      <a href="../index.html" style="font-size:13px;color:var(--gold-soft);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-left:4px">← Min religion</a>
+      <span class="sub">Prøveportal</span>
+      <a href="../index.html" style="font-size:13px;color:var(--gold-soft);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-left:4px">← Alle verktøy</a>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -276,14 +304,42 @@
 
     <div class="panel hidden" id="nyPanel">
       <h2>Ny prøve</h2>
-      <p class="hint">Elevene trekker tilfeldig blant religionene du velger, og får 10 tilfeldige av de 20 spørsmålene.</p>
+      <p class="hint">Velg hvor spørsmålene skal komme fra, hvor mange hver elev skal få, og om elevene skal trekke ett tema hver.</p>
       <div class="skjema">
         <div><label class="felt" for="nyTittel">Navn på prøven</label><input id="nyTittel" type="text" value="7. trinn – De fem store religionene"></div>
+        <div><label class="felt" for="nyGruppe">Gruppe <a href="../grupper.html">Mine grupper ↗</a></label><select id="nyGruppe"><option value="">Ingen – skriv navn selv</option></select></div>
         <div><label class="felt" for="nyAntall">Antall elever</label><input id="nyAntall" type="number" min="1" max="60" value="25"></div>
         <div><label class="felt" for="nyKilde">Koder</label><select id="nyKilde"><option value="">Lag nye koder</option></select></div>
       </div>
-      <label class="felt">Religioner i trekningen</label>
-      <div class="relvalg" id="relvalg"></div>
+      <label class="felt">Spørsmål fra</label>
+      <div class="kildevalg" id="kildevalg">
+        <label class="pa"><input type="radio" name="kilde" value="innebygd" checked> De fem religionene (innebygd)</label>
+        <label><input type="radio" name="kilde" value="csv"> Egne spørsmål fra CSV</label>
+      </div>
+      <div id="kildeInnebygd">
+        <div class="relvalg" id="relvalg"></div>
+      </div>
+      <div id="kildeCsv" class="hidden">
+        <div class="csvsone" id="csvSone">
+          <p>Dra CSV-filer hit, eller velg dem. <b>Hver fil blir ett tema.</b> Blooket-filer fungerer rett inn.</p>
+          <div class="rad">
+            <label class="btn liten" style="cursor:pointer">Velg CSV-filer<input type="file" id="csvFil" accept=".csv,.txt,text/csv" multiple hidden></label>
+            <button class="btn ghost liten" id="csvMal" type="button">Last ned CSV-mal</button>
+          </div>
+        </div>
+        <div class="temaliste" id="temaliste"><div class="tom">Ingen filer lastet opp ennå.</div></div>
+      </div>
+      <div class="innst">
+        <div class="boks">
+          <label class="felt" for="nySpAntall">Antall spørsmål per elev</label>
+          <input id="nySpAntall" type="number" min="1" max="50" value="10" style="width:110px">
+          <p class="hint" id="antallHint">Har et tema færre spørsmål, får eleven alle i temaet.</p>
+        </div>
+        <div class="boks">
+          <label class="sjekk"><input type="checkbox" id="nyTilfeldig" checked> <span><b>Tilfeldig tema per elev</b></span></label>
+          <p class="hint" id="modusHint">Hver elev trekker ett av temaene og får bare spørsmål om det.</p>
+        </div>
+      </div>
       <label class="sjekk"><input type="checkbox" id="nyVisRes" checked> <span>Vis poeng og fasit til eleven rett etter levering</span></label>
       <label class="sjekk"><input type="checkbox" id="nyAapen" checked> <span>Åpne prøven for elevene med en gang</span></label>
       <div class="rad" style="margin-top:12px">
@@ -316,7 +372,7 @@
         <div class="t"><div class="v" id="tLevert">0</div><div class="l">levert</div></div>
         <div class="t"><div class="v" id="tIgang">0</div><div class="l">i gang nå</div></div>
         <div class="t"><div class="v" id="tIkke">0</div><div class="l">ikke startet</div></div>
-        <div class="t"><div class="v" id="tSnitt">–</div><div class="l">snitt (av 10)</div></div>
+        <div class="t"><div class="v" id="tSnitt">–</div><div class="l" id="tSnittL">snitt</div></div>
         <div class="t fordeling" id="fordeling"></div>
       </div>
 
@@ -329,6 +385,7 @@
         <button class="btn ghost liten" id="lastNed">Last ned navneliste</button>
         <label class="btn ghost liten" style="cursor:pointer">Last opp navneliste<input type="file" id="lastOpp" accept=".csv,.txt" hidden></label>
         <button class="btn ghost liten" id="flereKoder">+ 5 koder</button>
+        <button class="btn ghost liten hidden" id="synkGruppe">+ Koder til nye elever i gruppa</button>
       </div>
 
       <div class="navnpanel hidden" id="navnPanel">
@@ -345,7 +402,7 @@
         <table>
           <thead><tr>
             <th style="width:28px"><input type="checkbox" id="velgAlle" aria-label="Velg alle"></th>
-            <th>Nr</th><th>Kode</th><th>Navn</th><th>Status</th><th>Religion</th><th>Resultat</th><th>Kommentar til rapporten</th><th></th>
+            <th>Nr</th><th>Kode</th><th>Navn</th><th>Status</th><th>Tema</th><th>Resultat</th><th>Kommentar til rapporten</th><th></th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -364,6 +421,7 @@
 
 <script src="felles.js"></script>
 <script>
+let grupper=[], gruppeNavn={}, kodeElev={};
 let bruker=null, prover=[], aktivId=null, aktivProve=null, koder=[], svar={}, navn={}, kom={}, valgte=new Set(), unsub=null, nyKonto=false;
 
 const urlBase = () => location.href.replace(/[?#].*$/,"").replace(/[^/]*$/,"") + "prove.html";
@@ -372,7 +430,72 @@ const elevLenke = id => urlBase() + "?p=" + encodeURIComponent(id) + (ER_DEMO?"&
 /* ---------- Oppstart ---------- */
 $("strip").innerHTML = REL_NOKLER.map(r=>`<img src="${relBilde(r,1)}" alt="${RELIGIONER[r].navn}">`).join("");
 $("relvalg").innerHTML = REL_NOKLER.map(r=>`<label class="pa" style="--c:${RELIGIONER[r].farge}"><input type="checkbox" value="${r}" checked><img src="${relBilde(r,1)}" alt=""><span>${RELIGIONER[r].navn}</span></label>`).join("");
-$("relvalg").addEventListener("change", e=>{ e.target.closest("label").classList.toggle("pa", e.target.checked); });
+$("relvalg").addEventListener("change", e=>{ e.target.closest("label").classList.toggle("pa", e.target.checked); oppdaterNyHint(); });
+
+/* ---------- Ny prøve: spørsmålskilde, CSV-temaer og innstillinger ---------- */
+let csvTemaer=[];   // {id, navn, sp:[{s,a,f}], feil:[linjenr], fil}
+function spKilde(){ return document.querySelector('input[name=kilde]:checked').value; }
+$("kildevalg").addEventListener("change",()=>{
+  document.querySelectorAll("#kildevalg label").forEach(l=>l.classList.toggle("pa", l.querySelector("input").checked));
+  $("kildeInnebygd").classList.toggle("hidden", spKilde()!=="innebygd");
+  $("kildeCsv").classList.toggle("hidden", spKilde()!=="csv");
+  if(spKilde()==="csv" && /fem store religionene/i.test($("nyTittel").value)) $("nyTittel").value="7. trinn – KRLE-prøve";
+  oppdaterNyHint();
+});
+async function lesCsvFiler(filer){
+  for(const f of filer){
+    try{
+      const r=tolkSporsmalCSV(await f.text());
+      csvTemaer.push({id:"t"+Math.random().toString(36).slice(2,9), navn:temaNavnFraFil(f.name), sp:r.sp, feil:r.feil, fil:f.name});
+    }catch(e){ st("nyStatus",`Klarte ikke å lese «${f.name}».`,false); }
+  }
+  tegnTemaliste(); oppdaterNyHint();
+}
+$("csvFil").addEventListener("change", e=>{ lesCsvFiler([...e.target.files]); e.target.value=""; });
+["dragenter","dragover"].forEach(ev=>$("csvSone").addEventListener(ev,e=>{ e.preventDefault(); $("csvSone").classList.add("over"); }));
+["dragleave","drop"].forEach(ev=>$("csvSone").addEventListener(ev,e=>{ e.preventDefault(); $("csvSone").classList.remove("over"); }));
+$("csvSone").addEventListener("drop", e=>{ const f=[...((e.dataTransfer&&e.dataTransfer.files)||[])].filter(f=>/\.(csv|txt)$/i.test(f.name)); if(f.length) lesCsvFiler(f); });
+function tegnTemaliste(){
+  $("temaliste").innerHTML = csvTemaer.map((t,i)=>{
+    const fg=EGNE_FARGER[i%EGNE_FARGER.length];
+    const bilde=temaBilde({egne:{x:{navn:t.navn,farge:fg[0],mork:fg[1],lys:fg[2]}}},"x",1);
+    const feil = !t.sp.length ? `<span class="adv">Fant ingen spørsmål – sjekk formatet</span>`
+      : t.feil.length ? `<span class="adv" title="Linje ${t.feil.join(", ")} mangler svar eller riktig svar">${t.feil.length} linje${t.feil.length>1?"r":""} hoppet over</span>` : "";
+    return `<div class="temarad" data-id="${t.id}"><img src="${bilde}" alt=""><input type="text" value="${esc(t.navn)}" aria-label="Navn på tema">
+      <span class="n">${t.sp.length} spørsmål</span>${feil}<button class="radknapp fare" type="button">Fjern</button></div>`;
+  }).join("") || `<div class="tom">Ingen filer lastet opp ennå.</div>`;
+}
+$("temaliste").addEventListener("input", e=>{ const r=e.target.closest(".temarad"); const t=r&&csvTemaer.find(x=>x.id===r.dataset.id); if(t) t.navn=e.target.value; });
+$("temaliste").addEventListener("change", e=>{ if(e.target.matches("input[type=text]")) tegnTemaliste(); });
+$("temaliste").addEventListener("click", e=>{
+  if(!e.target.classList.contains("radknapp")) return;
+  const r=e.target.closest(".temarad"); csvTemaer=csvTemaer.filter(x=>x.id!==r.dataset.id); tegnTemaliste(); oppdaterNyHint();
+});
+$("csvMal").addEventListener("click",()=>{
+  const mal="Spørsmål;Svar 1;Svar 2;Svar 3;Svar 4;Riktig svar (1-4)\nHva heter islams hellige bok?;Bibelen;Koranen;Toraen;Vedaene;2\nHvor mange søyler har islam?;Tre;Fem;;;2\n";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+mal],{type:"text/csv;charset=utf-8"}));
+  a.download="sporsmal-mal.csv"; document.body.appendChild(a); a.click(); a.remove();
+});
+$("nyTilfeldig").addEventListener("change", oppdaterNyHint);
+$("nySpAntall").addEventListener("input", oppdaterNyHint);
+function valgteTemaStorrelser(){
+  return spKilde()==="csv" ? csvTemaer.filter(t=>t.sp.length).map(t=>t.sp.length)
+                         : [...$("relvalg").querySelectorAll("input:checked")].map(i=>BANK[i.value].length);
+}
+function oppdaterNyHint(){
+  const tilf=$("nyTilfeldig").checked, n=parseInt($("nySpAntall").value)||10, str=valgteTemaStorrelser();
+  $("modusHint").textContent = tilf ? "Hver elev trekker ett av temaene og får bare spørsmål om det."
+                                    : "Ingen trekning: alle elevene får spørsmål blandet fra alle temaene.";
+  let h="Har et tema færre spørsmål, får eleven alle i temaet.";
+  if(str.length){
+    const min=Math.min(...str), sum=str.reduce((a,b)=>a+b,0);
+    if(tilf && n>min) h=`Obs: minste tema har ${min} spørsmål – elever som trekker det, får bare ${min}.`;
+    else if(!tilf && n>sum) h=`Obs: det finnes bare ${sum} spørsmål til sammen – alle får ${sum}.`;
+    else h = tilf ? `Temaene har ${str.join(", ")} spørsmål – hver elev får ${n} tilfeldige.` : `${n} tilfeldige av ${sum} spørsmål til sammen.`;
+  }
+  $("antallHint").textContent=h;
+}
+oppdaterNyHint();
 if(ER_DEMO) $("demoBar").classList.remove("hidden");
 
 if(!Lager.klar){
@@ -419,6 +542,8 @@ $("epostBtn").addEventListener("click",()=>{
 /* ---------- Prøveliste ---------- */
 async function lastProver(velgId){
   st("listeStatus","",null);
+  try{ grupper = await Lager.mineGrupper(bruker.uid); }catch(e){ grupper=[]; }
+  $("nyGruppe").innerHTML = `<option value="">Ingen – skriv navn selv</option>` + grupper.map(g=>`<option value="${esc(g.id)}">${esc(g.navn)} (${g.elever.length} elever)</option>`).join("");
   try{ prover = await Lager.mineProver(bruker.uid); }
   catch(e){ prover=[]; st("listeStatus",oversettFeil(e),false); }
   prover.sort((a,b)=>(b.opprettet||0)-(a.opprettet||0));
@@ -431,7 +556,7 @@ async function lastProver(velgId){
 function tegnListe(){
   $("proveliste").innerHTML = prover.length ? prover.map(p=>`
     <button class="prove-rad ${p.id===aktivId?"aktiv":""}" data-id="${esc(p.id)}">
-      <span class="ikoner">${(p.religioner||REL_NOKLER).map(r=>`<img src="${relBilde(r,1)}" alt="">`).join("")}</span>
+      <span class="ikoner">${proveTemaer(p).slice(0,6).map(r=>`<img src="${temaBilde(p,r,1)}" alt="">`).join("")}</span>
       <span class="info"><span class="t">${esc(p.tittel)}</span><br><span class="m">Opprettet ${datoTekst(p.opprettet)}</span></span>
       <span class="pille ${p.aktiv?"apen":"stengt"}">${p.aktiv?"Åpen":"Stengt"}</span>
     </button>`).join("") : `<div class="tom">Ingen prøver ennå. Lag den første!</div>`;
@@ -441,18 +566,46 @@ $("proveliste").addEventListener("click", e=>{ const b=e.target.closest(".prove-
 /* ---------- Ny prøve ---------- */
 $("nyProveVis").addEventListener("click",()=>{ $("nyPanel").classList.remove("hidden"); $("nyTittel").focus(); $("nyPanel").scrollIntoView({behavior:"smooth",block:"start"}); });
 $("avbrytNy").addEventListener("click",()=>$("nyPanel").classList.add("hidden"));
-$("nyKilde").addEventListener("change",()=>{ $("nyAntall").disabled = !!$("nyKilde").value; });
+function oppdaterKodeValg(){
+  const g=grupper.find(x=>x.id===$("nyGruppe").value), k=!!$("nyKilde").value;
+  $("nyKilde").disabled = !!g; $("nyGruppe").disabled = k;
+  $("nyAntall").disabled = !!g || k;
+  if(g) $("nyAntall").value = g.elever.length;
+}
+$("nyKilde").addEventListener("change", oppdaterKodeValg);
+$("nyGruppe").addEventListener("change", oppdaterKodeValg);
 $("opprettBtn").addEventListener("click", async ()=>{
   const tittel=$("nyTittel").value.trim()||"KRLE-prøve";
-  const religioner=[...$("relvalg").querySelectorAll("input:checked")].map(i=>i.value);
-  if(!religioner.length) return st("nyStatus","Velg minst én religion.",false);
+  const antall=Math.max(1,Math.min(MAKS_SPORSMAL,parseInt($("nySpAntall").value)||10));
+  const modus=$("nyTilfeldig").checked?"tilfeldig":"blandet";
+  let religioner, egne=null;
+  if(spKilde()==="csv"){
+    const gyldige=csvTemaer.filter(t=>t.sp.length);
+    if(!gyldige.length) return st("nyStatus","Last opp minst én CSV-fil med spørsmål.",false);
+    egne={}; religioner=[];
+    gyldige.forEach((t,i)=>{
+      const key="t"+(i+1), fg=EGNE_FARGER[i%EGNE_FARGER.length];
+      egne[key]={navn:(t.navn||"").trim()||("Tema "+(i+1)), farge:fg[0], mork:fg[1], lys:fg[2],
+                 sp:t.sp.map((q,j)=>({s:q.s, a:q.a, k:kodFasitInn(q.f,j)}))};
+      religioner.push(key);
+    });
+  } else {
+    religioner=[...$("relvalg").querySelectorAll("input:checked")].map(i=>i.value);
+    if(!religioner.length) return st("nyStatus","Velg minst én religion.",false);
+  }
   const kilde=$("nyKilde").value;
-  let kodeliste, navnKopi=null;
+  let kodeliste, navnKopi=null, elevIder=null, gruppeId=null;
   $("opprettBtn").disabled=true; st("nyStatus","Oppretter …",null);
   try{
-    if(kilde){ kodeliste=(await Lager.hentKoder(kilde)).map(k=>k.kode); navnKopi=lsGet("rp_navn_"+kilde,{}); }
+    const g=grupper.find(x=>x.id===$("nyGruppe").value);
+    if(kilde){
+      const kk=await Lager.hentKoder(kilde); kodeliste=kk.map(k=>k.kode); navnKopi=lsGet("rp_navn_"+kilde,{});
+      if(kk.some(k=>k.elevId)){ elevIder=kk.map(k=>k.elevId); const kp=prover.find(p=>p.id===kilde); gruppeId=(kp&&kp.gruppeId)||null; }
+    }
+    else if(g){ if(!g.elever.length) throw {message:"Gruppa har ingen elever."}; kodeliste=lagKoder(g.elever.length); elevIder=g.elever.map(e=>e.id); gruppeId=g.id; }
     else { const n=Math.max(1,Math.min(60,parseInt($("nyAntall").value)||25)); kodeliste=lagKoder(n); }
-    const id = await Lager.nyProve({eier:bruker.uid, tittel, aktiv:$("nyAapen").checked, visResultat:$("nyVisRes").checked, religioner, opprettet:Date.now()}, kodeliste);
+    const id = await Lager.nyProve({eier:bruker.uid, tittel, aktiv:$("nyAapen").checked, visResultat:$("nyVisRes").checked, religioner, antall, modus, ...(egne?{egne}:{}), ...(gruppeId?{gruppeId}:{}), opprettet:Date.now()}, kodeliste, elevIder);
+    csvTemaer=[]; tegnTemaliste();
     if(navnKopi) lsSet("rp_navn_"+id, navnKopi);
     st("nyStatus","",null); $("nyPanel").classList.add("hidden");
     await lastProver(id);
@@ -465,10 +618,13 @@ async function velgProve(id){
   aktivId=id; tegnListe(); valgte=new Set(); $("velgAlle").checked=false;
   if(unsub){ unsub(); unsub=null; }
   aktivProve = prover.find(p=>p.id===id) || await Lager.hentProve(id);
+  PROVE_CTX = aktivProve;
   navn = lsGet("rp_navn_"+id,{}); kom = lsGet("rp_kom_"+id,{});
   $("provePanel").classList.remove("hidden");
   tegnHode();
   try{ koder = await Lager.hentKoder(id); }catch(e){ koder=[]; }
+  if(aktivProve.gruppeId){ try{ grupper = await Lager.mineGrupper(bruker.uid); }catch(e){} }
+  oppdaterGruppeNavn();
   svar={};
   tegnTabell();
   unsub = Lager.lyttSvar(id, s=>{ svar=s||{}; oppdaterRader(); tegnTall(); }, e=>st("listeStatus",oversettFeil(e),false));
@@ -476,7 +632,8 @@ async function velgProve(id){
 function tegnHode(){
   const p=aktivProve;
   $("ppTittel").textContent=p.tittel;
-  $("ppMeta").textContent=`Opprettet ${datoTekst(p.opprettet)} · ${(p.religioner||REL_NOKLER).map(r=>RELIGIONER[r].navn).join(", ")} · ${p.visResultat?"eleven ser resultatet":"eleven ser ikke resultatet"}`;
+  const gr=p.gruppeId?grupper.find(x=>x.id===p.gruppeId):null;
+  $("ppMeta").textContent=`Opprettet ${datoTekst(p.opprettet)}${gr?" · Gruppe "+gr.navn:""} · ${temaNavnListe(p)} · ${proveAntall(p)} spørsmål · ${proveModus(p)==="blandet"?"blandet fra alle temaene":"tilfeldig tema per elev"} · ${p.visResultat?"eleven ser resultatet":"eleven ser ikke resultatet"}`;
   $("ppPille").className="pille "+(p.aktiv?"apen":"stengt"); $("ppPille").textContent=p.aktiv?"Åpen for elevene":"Stengt";
   $("aapneBtn").textContent=p.aktiv?"Steng prøven":"Åpne prøven";
   $("aapneBtn").className = "btn liten " + (p.aktiv?"ghost":"teal");
@@ -490,6 +647,17 @@ $("aapneBtn").addEventListener("click", async ()=>{
 });
 $("kopierLenke").addEventListener("click",()=>{ kopier(elevLenke(aktivId)); $("kopierLenke").textContent="Kopiert ✓"; setTimeout(()=>$("kopierLenke").textContent="Kopier",1500); });
 
+/* Navn: fra «Mine grupper» når koden er knyttet til en elev der – ellers det du har skrevet inn (lagret i nettleseren) */
+function oppdaterGruppeNavn(){
+  const g=aktivProve && aktivProve.gruppeId ? grupper.find(x=>x.id===aktivProve.gruppeId) : null;
+  gruppeNavn={}; if(g) g.elever.forEach(e=>gruppeNavn[e.id]=e.navn);
+  kodeElev={}; koder.forEach(k=>{ if(k.elevId) kodeElev[k.kode]=k.elevId; });
+  const mangler = g ? g.elever.filter(e=>!koder.some(k=>k.elevId===e.id)).length : 0;
+  $("synkGruppe").classList.toggle("hidden", !mangler);
+  $("synkGruppe").textContent = `+ Koder til ${mangler} ny${mangler===1?"":"e"} elev${mangler===1?"":"er"} i gruppa`;
+}
+function fraGruppe(kode){ const e=kodeElev[kode]; return !!(e && gruppeNavn[e]!=null); }
+function navnFor(kode){ return fraGruppe(kode) ? gruppeNavn[kodeElev[kode]] : (navn[kode]||""); }
 function statusFor(k){ const s=svar[k]; return !s?"ikke":s.levert?"levert":"igang"; }
 function tegnTabell(){
   $("tbody").innerHTML = koder.map(({kode,nr})=>`
@@ -497,7 +665,7 @@ function tegnTabell(){
       <td><input type="checkbox" class="velg" ${valgte.has(kode)?"checked":""} aria-label="Velg ${kode}"></td>
       <td>${nr}</td>
       <td class="kode">${kode}</td>
-      <td><input type="text" class="navn" value="${esc(navn[kode]||"")}" placeholder="Navn"></td>
+      <td>${fraGruppe(kode) ? `<input type="text" class="navn fragruppe" value="${esc(navnFor(kode))}" readonly title="Hentet fra gruppa – endre i Mine grupper">` : `<input type="text" class="navn" value="${esc(navn[kode]||"")}" placeholder="Navn">`}</td>
       <td class="c-st"></td><td class="c-rel"></td><td class="c-res"></td>
       <td><input type="text" class="kom" value="${esc(kom[kode]||"")}" placeholder="Valgfritt"></td>
       <td style="white-space:nowrap"><button class="radknapp c-rapp">Rapport</button> <button class="radknapp fare c-null">Nullstill</button></td>
@@ -508,29 +676,47 @@ function oppdaterRader(){
   document.querySelectorAll("#tbody tr[data-k]").forEach(tr=>{
     const k=tr.dataset.k, s=svar[k], sta=statusFor(k);
     tr.querySelector(".c-st").innerHTML = `<span class="st ${sta}">${sta==="levert"?"Levert":sta==="igang"?"I gang":"Ikke startet"}</span>`;
-    tr.querySelector(".c-rel").innerHTML = s ? `<span class="relcelle"><i style="background:${RELIGIONER[s.religion].farge}"></i>${RELIGIONER[s.religion].navn}</span>` : "";
+    const T = s ? temaInfo(aktivProve, s.religion) : null;
+    tr.querySelector(".c-rel").innerHTML = s ? `<span class="relcelle"><i style="background:${T.farge}"></i>${esc(T.navn)}</span>` : "";
     if(s){
-      const r=riktigeAv(s), besv=(s.svar||[]).filter(v=>v!=null).length;
+      const r=riktigeAv(s), N=s.sporsmal.length, besv=(s.svar||[]).filter(v=>v!=null).length, bw=N>20?2:N>12?3:5;
       tr.querySelector(".c-res").innerHTML = s.levert
-        ? `<span class="res"><b>${r}/10</b><span class="mini">${Array.from({length:10},(_,i)=>`<b class="${i<r?"r":""}"></b>`).join("")}</span></span>`
-        : `<span style="color:var(--dim);font-size:13px">${besv}/10 besvart</span>`;
+        ? `<span class="res"><b>${r}/${N}</b><span class="mini">${Array.from({length:N},(_,i)=>`<b class="${i<r?"r":""}" style="width:${bw}px"></b>`).join("")}</span></span>`
+        : `<span style="color:var(--dim);font-size:13px">${besv}/${N} besvart</span>`;
     } else tr.querySelector(".c-res").innerHTML="";
     tr.querySelector(".c-rapp").disabled = sta!=="levert";
     const nb=tr.querySelector(".c-null"); nb.disabled = !s; if(!nb.dataset.b) nb.textContent="Nullstill";
   });
+}
+function snittTekst(lev){
+  if(!lev.length) return ["–","snitt"];
+  const Ns=new Set(lev.map(s=>s.sporsmal.length));
+  if(Ns.size===1) return [(lev.reduce((a,s)=>a+riktigeAv(s),0)/lev.length).toLocaleString("nb-NO",{maximumFractionDigits:1}), `snitt (av ${[...Ns][0]})`];
+  return [Math.round(lev.reduce((a,s)=>a+riktigeAv(s)/s.sporsmal.length,0)/lev.length*100)+" %", "snitt riktige"];
 }
 function tegnTall(){
   const vals=Object.values(svar), lev=vals.filter(s=>s.levert);
   $("tLevert").textContent = `${lev.length}/${koder.length}`;
   $("tIgang").textContent = vals.filter(s=>!s.levert).length;
   $("tIkke").textContent = Math.max(0, koder.length - vals.length);
-  $("tSnitt").textContent = lev.length ? (lev.reduce((a,s)=>a+riktigeAv(s),0)/lev.length).toLocaleString("nb-NO",{maximumFractionDigits:1}) : "–";
-  const maks=Math.max(1,...REL_NOKLER.map(r=>vals.filter(s=>s.religion===r).length));
-  $("fordeling").innerHTML = (aktivProve.religioner||REL_NOKLER).map(r=>{
-    const alle=vals.filter(s=>s.religion===r), l=alle.filter(s=>s.levert);
-    const sn = l.length ? (l.reduce((a,s)=>a+riktigeAv(s),0)/l.length).toLocaleString("nb-NO",{maximumFractionDigits:1}) : "–";
-    return `<div class="fr"><span class="n">${RELIGIONER[r].navn}</span><span class="bar"><i style="width:${alle.length/maks*100}%;background:${RELIGIONER[r].farge}"></i></span><span class="c">${alle.length} · ⌀${sn}</span></div>`;
-  }).join("");
+  const [sv, sl] = snittTekst(lev); $("tSnitt").textContent=sv; $("tSnittL").textContent=sl;
+  const p=aktivProve, tem=proveTemaer(p);
+  if(proveModus(p)==="blandet"){
+    // Blandet: vis hvor mange prosent riktig klassen har per tema
+    $("fordeling").innerHTML = tem.map(k=>{
+      let rik=0, tot=0;
+      lev.forEach(s=>s.sporsmal.forEach((_,i)=>{ const h=hentSp(p,s,i); if(h.tema===k){ tot++; if((s.svar||[])[i]===h.f) rik++; } }));
+      const pr=tot?Math.round(rik/tot*100):0, T=temaInfo(p,k);
+      return `<div class="fr"><span class="n" title="${esc(T.navn)}">${esc(T.navn)}</span><span class="bar"><i style="width:${pr}%;background:${T.farge}"></i></span><span class="c">${tot?pr+" % riktig":"–"}</span></div>`;
+    }).join("");
+  } else {
+    const maks=Math.max(1,...tem.map(r=>vals.filter(s=>s.religion===r).length));
+    $("fordeling").innerHTML = tem.map(r=>{
+      const alle=vals.filter(s=>s.religion===r), l=alle.filter(s=>s.levert), T=temaInfo(p,r);
+      const sn = l.length ? (l.reduce((a,s)=>a+riktigeAv(s),0)/l.length).toLocaleString("nb-NO",{maximumFractionDigits:1}) : "–";
+      return `<div class="fr"><span class="n" title="${esc(T.navn)}">${esc(T.navn)}</span><span class="bar"><i style="width:${alle.length/maks*100}%;background:${T.farge}"></i></span><span class="c">${alle.length} · ⌀${sn}</span></div>`;
+    }).join("");
+  }
 }
 
 /* Tabell-hendelser */
@@ -576,7 +762,7 @@ $("navnBruk").addEventListener("click",()=>{
   lsSet("rp_navn_"+aktivId,navn); tegnTabell(); $("navnPanel").classList.add("hidden");
 });
 $("lastNed").addEventListener("click",()=>{
-  const csv="nr;kode;navn\n"+koder.map(k=>`${k.nr};${k.kode};${(navn[k.kode]||"").replace(/;/g,",")}`).join("\n");
+  const csv="nr;kode;navn\n"+koder.map(k=>`${k.nr};${k.kode};${navnFor(k.kode).replace(/;/g,",")}`).join("\n");
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8"}));
   a.download=`navneliste-${(aktivProve.tittel||"prove").replace(/[^\wæøåÆØÅ-]+/g,"_")}.csv`; a.click();
@@ -588,6 +774,14 @@ $("lastOpp").addEventListener("change", async e=>{
   t.split(/\r?\n/).forEach(l=>{ const c=l.split(/[;,\t]/); const i=c.findIndex(x=>kjent.has(normKode(x))); if(i>=0){ navn[normKode(c[i])]=(c[i+1]||"").trim(); n++; } });
   lsSet("rp_navn_"+aktivId,navn); tegnTabell(); e.target.value="";
   st("listeStatus", n?`Hentet ${n} navn.`:"Fant ingen koder i fila som passer med denne prøven.", !!n);
+});
+$("synkGruppe").addEventListener("click", async ()=>{
+  const g=grupper.find(x=>x.id===aktivProve.gruppeId); if(!g) return;
+  const nyeElever=g.elever.filter(e=>!koder.some(k=>k.elevId===e.id)); if(!nyeElever.length) return;
+  const nye=lagKoder(nyeElever.length, koder.map(k=>k.kode)), start=(koder.length?Math.max(...koder.map(k=>k.nr)):0)+1;
+  try{ await Lager.leggTilKoder(aktivId,nye,start,nyeElever.map(e=>e.id)); koder=await Lager.hentKoder(aktivId); oppdaterGruppeNavn(); tegnTabell();
+       st("listeStatus",`La til koder for ${nyeElever.map(e=>e.navn).join(", ")}.`,true); }
+  catch(e){ st("listeStatus",oversettFeil(e),false); }
 });
 $("flereKoder").addEventListener("click", async ()=>{
   const nye=lagKoder(5, koder.map(k=>k.kode)), start=(koder.length?Math.max(...koder.map(k=>k.nr)):0)+1;
@@ -611,24 +805,25 @@ async function skriv(html){
   window.print();
 }
 function rapportHalv(k){
-  const s=svar[k], R=RELIGIONER[s.religion], r=riktigeAv(s);
-  const sp=s.sporsmal.map((qi,i)=>{
-    const q=BANK[s.religion][qi], v=(s.svar||[])[i], f=fasit(s.religion,qi), ok=v===f;
+  const s=svar[k], p=aktivProve, R=temaInfo(p,s.religion), r=riktigeAv(s), N=s.sporsmal.length, blandet=s.religion==="_blandet";
+  const ikon = (RELIGIONER[s.religion] && !p.egne) ? relBilde(s.religion,6) : temaBilde(p,s.religion,1);
+  const sp=s.sporsmal.map((_,i)=>{
+    const h=hentSp(p,s,i), q=h.q, v=(s.svar||[])[i], f=h.f, ok=v===f;
     return `<div class="spr"><span class="m ${ok?"ok":"nei"}">${ok?"✓":"✗"}</span><div>
       <div class="q">${i+1}. ${esc(q.s)}</div>
       <div class="a">Svar: ${v==null?"<i>ikke besvart</i>":esc(q.a[v])}${ok?"":` <span class="f">→ Riktig: ${esc(q.a[f])}</span>`}</div></div></div>`;
   }).join("");
   return `<div class="halv" style="--c:${R.farge};--m:${R.mork};--lys:${R.lys}"><span class="klipp">✂</span>
     <div class="rh">
-      <div class="ikon"><img src="${relBilde(s.religion,6)}" alt=""></div>
-      <div><div class="ov">KRLE · Prøve i de fem store religionene</div><h3>${R.navn}</h3><div class="pt">${esc(aktivProve.tittel)}</div></div>
-      <div class="poeng"><b>${r}</b><small>av 10 riktige</small></div>
+      <div class="ikon"><img src="${ikon}" alt=""></div>
+      <div><div class="ov">${p.egne?"KRLE · Prøve":"KRLE · Prøve i de fem store religionene"}</div><h3>${esc(blandet?p.tittel:R.navn)}</h3><div class="pt">${esc(blandet?temaNavnListe(p):p.tittel)}</div></div>
+      <div class="poeng"><b>${r}</b><small>av ${N} riktige</small></div>
     </div>
     <div class="felter">
-      <div><span>Elev</span><b>${esc(navn[k]||"")}</b></div>
+      <div><span>Elev</span><b>${esc(navnFor(k))}</b></div>
       <div><span>Levert</span>${datoTekst(s.levertTid)}</div>
     </div>
-    <div class="spgrid">${sp}</div>
+    <div class="spgrid" style="grid-template-rows:repeat(${Math.ceil(N/2)},auto)">${sp}</div>
     <div class="bunn">
       <div><div class="lbl">Kommentar fra lærer</div>${kom[k]?`<div class="kom-tekst">${esc(kom[k])}</div>`:`<div class="linje"></div><div class="linje"></div>`}</div>
       <div><div class="lbl">Sett av foresatte – underskrift</div><div class="linje"></div><div class="linje" style="height:5mm;font-size:7pt;color:#8d89a0">Dato:</div><div class="liten">Signer og lever arket tilbake til skolen.</div></div>
@@ -639,7 +834,9 @@ function skrivRapporter(liste){
   const lev = liste.filter(k=>svar[k] && svar[k].levert);
   if(!lev.length) return st("listeStatus","Ingen leverte prøver å skrive ut" + (liste.length?" blant de valgte.":"."), false);
   st("listeStatus","",null);
-  let html=""; for(let i=0;i<lev.length;i+=2) html+=`<div class="ark">${rapportHalv(lev[i])}${lev[i+1]?rapportHalv(lev[i+1]):""}</div>`;
+  let html="";
+  if(lev.some(k=>svar[k].sporsmal.length>12)) lev.forEach(k=>html+=`<div class="ark en">${rapportHalv(k)}</div>`);   // mange spørsmål: én per A4
+  else for(let i=0;i<lev.length;i+=2) html+=`<div class="ark">${rapportHalv(lev[i])}${lev[i+1]?rapportHalv(lev[i+1]):""}</div>`;
   skriv(html);
 }
 $("skrivAlle").addEventListener("click",()=>skrivRapporter(koder.map(k=>k.kode)));
@@ -649,18 +846,18 @@ $("skrivLapper").addEventListener("click",()=>{
   for(let i=0;i<koder.length;i+=24){
     html+=`<div class="ark"><div class="lapper">`+koder.slice(i,i+24).map(k=>`
       <div class="lapp"><div class="top"><span>KRLE-prøve</span><span>nr. ${k.nr}</span></div>
-      <div class="nv">${esc(navn[k.kode]||"")}</div><div class="kd">${k.kode}</div><div class="url">${esc(lenke)}</div></div>`).join("")+`</div></div>`;
+      <div class="nv">${esc(navnFor(k.kode))}</div><div class="kd">${k.kode}</div><div class="url">${esc(lenke)}</div></div>`).join("")+`</div></div>`;
   }
   skriv(html);
 });
 $("skrivOversikt").addEventListener("click",()=>{
-  const rader=koder.map(k=>{ const s=svar[k.kode]; return `<tr><td>${k.nr}</td><td style="font-family:ui-monospace,monospace;font-weight:700">${k.kode}</td><td>${esc(navn[k.kode]||"")}</td>
-    <td>${s?RELIGIONER[s.religion].navn:""}</td><td>${s?(s.levert?`<b>${riktigeAv(s)}/10</b>`:"I gang"):"Ikke startet"}</td><td>${s&&s.levert?datoTekst(s.levertTid):""}</td><td style="width:22mm"></td></tr>`; }).join("");
+  const rader=koder.map(k=>{ const s=svar[k.kode]; return `<tr><td>${k.nr}</td><td style="font-family:ui-monospace,monospace;font-weight:700">${k.kode}</td><td>${esc(navnFor(k.kode))}</td>
+    <td>${s?esc(temaInfo(aktivProve,s.religion).navn):""}</td><td>${s?(s.levert?`<b>${riktigeAv(s)}/${s.sporsmal.length}</b>`:"I gang"):"Ikke startet"}</td><td>${s&&s.levert?datoTekst(s.levertTid):""}</td><td style="width:22mm"></td></tr>`; }).join("");
   const lev=Object.values(svar).filter(s=>s.levert);
-  const snitt = lev.length ? (lev.reduce((a,s)=>a+riktigeAv(s),0)/lev.length).toLocaleString("nb-NO",{maximumFractionDigits:1}) : "–";
+  const [snv, snl] = snittTekst(lev);
   skriv(`<div class="ark auto"><div class="oversiktark"><h1>${esc(aktivProve.tittel)}</h1>
-    <div class="meta">Klasseoversikt · ${lev.length} av ${koder.length} levert · snitt ${snitt} av 10 · skrevet ut ${datoTekst(Date.now())}</div>
-    <table><thead><tr><th>Nr</th><th>Kode</th><th>Navn</th><th>Religion</th><th>Resultat</th><th>Levert</th><th>Signert inn</th></tr></thead><tbody>${rader}</tbody></table></div></div>`);
+    <div class="meta">Klasseoversikt · ${lev.length} av ${koder.length} levert · ${snl}: ${snv} · skrevet ut ${datoTekst(Date.now())}</div>
+    <table><thead><tr><th>Nr</th><th>Kode</th><th>Navn</th><th>Tema</th><th>Resultat</th><th>Levert</th><th>Signert inn</th></tr></thead><tbody>${rader}</tbody></table></div></div>`);
 });
 </script>
 </body>

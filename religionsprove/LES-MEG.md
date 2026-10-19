@@ -1,6 +1,6 @@
 # Religionsprøven (Krøniken)
 
-Lærerportal + elevside for prøve i de fem store religionene, bygd på Blooket-spørsmålene.
+Lærerportal + elevside for prøver – enten de fem store religionene (innebygde Blooket-spørsmål) eller egne spørsmål fra CSV-filer.
 
 ## Filer
 - `index.html` – lærerportalen (logg inn, lag prøve, koder/navn, resultater, utskrift)
@@ -23,9 +23,16 @@ Test uten Firebase: `index.html?demo=1` (lagres bare i nettleseren).
 Firebase lagrer bare koder og svar – ingen navn. Navn og kommentarer ligger
 kun i lærerens nettleser (localStorage). Bruk «Last ned navneliste» som sikkerhetskopi.
 
-## Endre spørsmål
+## Egne spørsmål (CSV)
+«Ny prøve» → «Egne spørsmål fra CSV». Hver fil blir ett tema. Blooket-eksport fungerer direkte,
+eller bruk malen (Spørsmål;Svar 1;Svar 2;Svar 3;Svar 4;Riktig svar (1-4)) – 2 til 4 svar per spørsmål.
+Spørsmålene lagres i selve prøven i Firebase (fasiten lett kodet, som for de innebygde).
+Valg per prøve: antall spørsmål (1–50) og «Tilfeldig tema per elev» (av = blandet fra alle temaene).
+Over 12 spørsmål skrives rapportene ut én per A4.
+
+## Endre de innebygde spørsmålene
 Spørsmålene er bygd inn i `felles.js` fra Blooket_*.csv. Be Claude bygge `felles.js`
 på nytt hvis CSV-filene endres. (Fasiten er lett kodet så den ikke synes rett i kildekoden.)
 
 ## Lenker mellom verktøyene
-Krøniken (`Min religion/index.html`) har knappen «Prøveportal →», og prøveportalen har «← Min religion». På GitHub ligger Krøniken i roten av repoet (minreligion) og prøveportalen i undermappa `religionsprove/`.
+Krøniken (`Min religion/index.html`) viser en verktøymeny etter innlogging (Religionssimulator, Prøveportal, Arbeidslogg). Prøveportalen og Arbeidsloggen har «← Alle verktøy». På GitHub ligger Krøniken i roten av repoet (minreligion) og prøveportalen i undermappa `religionsprove/`.
