@@ -125,6 +125,32 @@
   .dsvar .t{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:6px}
   .dsvar ol{margin:0;padding-left:18px} .dsvar li{margin-bottom:4px;color:rgba(243,233,210,0.85)}
 
+  /* ---------- Forside (utlogget) ---------- */
+  .hero-piller{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 24px}
+  .hero-piller span{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:color-mix(in srgb, var(--c) 62%, #fff);
+    background:color-mix(in srgb, var(--c) 14%, transparent);border:1px solid color-mix(in srgb, var(--c) 45%, transparent);border-radius:999px;padding:6px 13px 6px 10px}
+  .hero-piller svg{width:17px;height:17px}
+  .vt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .vt{background:var(--night-2);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:18px;padding:24px 22px}
+  .vt-ikon{width:58px;height:58px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--c) 20%, transparent);color:var(--c);margin-bottom:14px}
+  .vt-ikon svg{width:32px;height:32px}
+  .vt h3{font-family:'Fraunces',serif;font-weight:700;font-size:22px;margin:0 0 6px}
+  .vt-tag{font-size:15px;color:color-mix(in srgb, var(--c) 62%, #fff);font-weight:700;margin:0 0 14px;line-height:1.35}
+  .vt ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .vt li{position:relative;padding-left:24px;font-size:14px;color:rgba(243,233,210,0.78)}
+  .vt li::before{content:"";position:absolute;left:2px;top:6px;width:11px;height:6px;border-left:2.2px solid var(--c);border-bottom:2.2px solid var(--c);transform:rotate(-45deg)}
+  .flyt{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative}
+  .fl{background:var(--night-2);border:1px solid var(--line);border-radius:15px;padding:20px}
+  .fl .nr{font-family:'Fraunces',serif;font-weight:700;font-size:30px;color:var(--gold);line-height:1;margin-bottom:10px}
+  .fl h4{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0 0 6px}
+  .fl p{font-size:14px;color:rgba(243,233,210,0.72);margin:0}
+  .trygg{display:flex;gap:18px;align-items:flex-start;margin-top:30px;background:rgba(79,184,168,.07);border:1px solid rgba(79,184,168,.35);border-radius:16px;padding:20px 22px}
+  .trygg-ikon{width:46px;height:46px;border-radius:12px;background:rgba(79,184,168,.18);color:#7fd6c4;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .trygg-ikon svg{width:26px;height:26px}
+  .trygg h4{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:2px 0 4px}
+  .trygg p{margin:0;font-size:14.5px;color:rgba(243,233,210,0.8)}
+  @media (max-width:860px){ .vt-grid,.flyt{grid-template-columns:1fr} }
+
   /* ---------- Verktøymeny ---------- */
   .meny-tit{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(28px,4vw,40px);margin:4px 0 6px;line-height:1.1}
   .meny-sub{color:rgba(243,233,210,0.65);margin:0 0 26px;font-size:16px}
@@ -171,17 +197,22 @@
   <section id="landing">
     <div class="hero">
       <div>
-        <div class="eyebrow">For læreren · 7. trinn</div>
-        <h1>Elevene bygger en religion. Så <span class="g">møtes</span> de i én verden.</h1>
-        <p>Et komplett KRLE-opplegg: elevene svarer seg fram til sin egen religion, en KI lager situasjoner de må ta stilling til, og til slutt møtes religionene i en sivilisasjonssimulator som driver klassediskusjonen.</p>
+        <div class="eyebrow">For læreren · KRLE</div>
+        <h1>Tre verktøy for KRLE&#8209;timene. <span class="g">Én innlogging.</span></h1>
+        <p>Elevene bygger sin egen religion i en simulator, tar prøver med kode og krysser av arbeidsarket på tavla. Klassen legger du inn én gang – så henger alt sammen.</p>
+        <div class="hero-piller">
+          <span style="--c:var(--peri)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M4.5 12h15M12 4.5c2.2 2.1 3.2 4.6 3.2 7.5s-1 5.4-3.2 7.5M12 4.5C9.8 6.6 8.8 9.1 8.8 12s1 5.4 3.2 7.5"/><circle cx="20.2" cy="5" r="1.4" fill="currentColor"/><circle cx="3.6" cy="18.6" r="1.1" fill="currentColor"/></svg>Religionssimulator</span>
+          <span style="--c:var(--crimson)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.8" width="14" height="17.2" rx="2.2"/><path d="M9 3.8h6v2.6H9z"/><path d="m8.4 11.2 1.5 1.5 2.8-2.9M8.4 16.4l1.5 1.5 2.8-2.9M14.6 11.6h1.8M14.6 16.8h1.8"/></svg>Prøveportal</span>
+          <span style="--c:var(--teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><path d="M3.5 9.3h17M3.5 14.7h17M9.2 4v16"/><path d="m11.8 6.9.9.9 1.7-1.8M15.8 12.2l.9.9 1.7-1.8M11.8 17.6l.9.9 1.7-1.8"/></svg>Arbeidslogg</span>
+        </div>
         <div class="rad">
           <a class="btn" href="#logginn" id="heroCta">Logg inn for å begynne</a>
-          <a class="btn ghost" href="#hvordan">Slik fungerer det</a>
+          <a class="btn ghost" href="#verktoyene">Se verktøyene</a>
         </div>
       </div>
       <div class="auth-card" id="logginn">
         <h3 id="authTit">Logg inn</h3>
-        <p class="liten-tekst" id="authSub">Logg inn for å lage klasser og se innleveringene dine.</p>
+        <p class="liten-tekst" id="authSub">Én konto gir deg alle tre verktøyene og gruppene dine.</p>
         <button class="google-btn" id="googleBtn">
           <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.2 13.6 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-17z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C1 16.3 0 20 0 24s1 7.7 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.8-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.7 2.1-6.4 0-11.8-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
           Fortsett med Google
@@ -197,18 +228,53 @@
       </div>
     </div>
 
-    <div class="steg" id="hvordan">
-      <div class="kort"><div class="nr">1</div><h4>Elevene bygger</h4><p>Hver elev får en lenke, svarer på spørsmål om tro, moral og fellesskap, og tar stilling til fem situasjoner KI-en lager.</p></div>
-      <div class="kort"><div class="nr">2</div><h4>Du henter klassen</h4><p>Alle religionene samles hos deg med kallenavn, verdivalg og hvordan elevene resonnerte.</p></div>
-      <div class="kort"><div class="nr">3</div><h4>De møtes</h4><p>Velg 2–5 religioner. Simulatoren forteller hvordan de utvikler seg og møtes – med kart, spenning og diskusjonsspørsmål.</p></div>
+    <h2 class="seksjon-tit" id="verktoyene">Verktøyene</h2>
+    <p class="seksjon-sub">Hvert verktøy kan brukes for seg – eller sammen gjennom en hel periode.</p>
+    <div class="vt-grid">
+      <article class="vt" style="--c:var(--peri)">
+        <div class="vt-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M4.5 12h15M12 4.5c2.2 2.1 3.2 4.6 3.2 7.5s-1 5.4-3.2 7.5M12 4.5C9.8 6.6 8.8 9.1 8.8 12s1 5.4 3.2 7.5"/><circle cx="20.2" cy="5" r="1.4" fill="currentColor"/><circle cx="3.6" cy="18.6" r="1.1" fill="currentColor"/></svg></div>
+        <h3>Religionssimulator</h3>
+        <p class="vt-tag">Elevene bygger en religion. Så møtes de i én verden.</p>
+        <ul>
+          <li>Eleven svarer seg fram til sin egen religion – tro, moral og fellesskap</li>
+          <li>En KI lager dilemmaer eleven må ta stilling til</li>
+          <li>Religionene møtes epoke for epoke på et kart – og driver klassediskusjonen</li>
+        </ul>
+      </article>
+      <article class="vt" style="--c:var(--crimson)">
+        <div class="vt-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.8" width="14" height="17.2" rx="2.2"/><path d="M9 3.8h6v2.6H9z"/><path d="m8.4 11.2 1.5 1.5 2.8-2.9M8.4 16.4l1.5 1.5 2.8-2.9M14.6 11.6h1.8M14.6 16.8h1.8"/></svg></div>
+        <h3>Prøveportal</h3>
+        <p class="vt-tag">Én lenke, én kode per elev – og rapporter rett i skriveren.</p>
+        <ul>
+          <li>Ferdige spørsmål om de fem religionene – eller dine egne fra CSV/Blooket</li>
+          <li>Velg antall spørsmål, og om hver elev skal trekke et tilfeldig tema</li>
+          <li>Rapporter to per A4, klare til underskrift hjemme</li>
+        </ul>
+      </article>
+      <article class="vt" style="--c:var(--teal)">
+        <div class="vt-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><path d="M3.5 9.3h17M3.5 14.7h17M9.2 4v16"/><path d="m11.8 6.9.9.9 1.7-1.8M15.8 12.2l.9.9 1.7-1.8M11.8 17.6l.9.9 1.7-1.8"/></svg></div>
+        <h3>Arbeidslogg</h3>
+        <p class="vt-tag">Hvem har gjort hva på arbeidsarket – rett fra tavla.</p>
+        <ul>
+          <li>Elevene krysser av oppgavene sine på tavla – med feiring og konfetti</li>
+          <li>Før fravær, så teller ikke borte-timer mot eleven</li>
+          <li>Rapport for perioden, og elevrapporter to per A4</li>
+        </ul>
+      </article>
     </div>
 
-    <h2 class="seksjon-tit">De tre delene</h2>
-    <p class="seksjon-sub">Alt henger sammen og styres herfra.</p>
-    <div class="deler">
-      <div class="kort" style="--c:var(--teal)"><h4>Lærersiden</h4><p>Din side. Lag klasser, del ut elevlenker, se innleveringer og start simulatoren.</p></div>
-      <div class="kort" style="--c:var(--crimson)"><h4>Elevskjemaet</h4><p>Eleven bygger religionen sin gjennom spørsmål og situasjoner, og lagrer den til klassen.</p></div>
-      <div class="kort" style="--c:var(--peri)"><h4>Simulatoren</h4><p>Religionene møtes i én verden, epoke for epoke, som grunnlag for refleksjon og diskusjon.</p></div>
+    <h2 class="seksjon-tit">Slik henger det sammen</h2>
+    <p class="seksjon-sub">Du gjør jobben med klasselista én gang.</p>
+    <div class="flyt">
+      <div class="fl"><div class="nr">1</div><h4>Legg inn klassen</h4><p>Lag gruppa i «Mine grupper» – bare fornavn. Den brukes av alle tre verktøyene.</p></div>
+      <div class="fl"><div class="nr">2</div><h4>Velg verktøy</h4><p>Elevene får lenke, kode eller trykker på tavla. Ingen elevkontoer, ingen passord.</p></div>
+      <div class="fl"><div class="nr">3</div><h4>Hent ut resultatene</h4><p>Se innleveringer, prøvesvar og fremdrift – og skriv ut rapporter når du trenger dem.</p></div>
+    </div>
+
+    <div class="trygg">
+      <div class="trygg-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2 5 6v5.2c0 4.4 2.9 8 7 9.6 4.1-1.6 7-5.2 7-9.6V6z"/><path d="m9 12 2.2 2.2L15.4 10"/></svg></div>
+      <div><h4>Laget med personvern i tankene</h4>
+      <p>Elevene trenger ingen konto. Navnene lagres bare privat hos læreren – prøvene og simulatoren bruker koder og kallenavn. Det eleven skriver i simulatoren, er anonymt.</p></div>
     </div>
   </section>
 
