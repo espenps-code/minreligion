@@ -168,7 +168,11 @@
   .csvsone .rad{justify-content:center}
   .temaliste{display:flex;flex-direction:column;gap:8px;margin:10px 0}
   .temarad{display:flex;align-items:center;gap:12px;background:var(--night);border:1px solid var(--line);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
-  .temarad img{width:38px;height:38px;border-radius:9px;flex-shrink:0}
+  .temarad img{width:38px;height:38px;border-radius:9px;flex-shrink:0;object-fit:cover}
+  .temarad .bildeknapp{position:relative;flex-shrink:0;cursor:pointer;border-radius:9px;line-height:0}
+  .temarad .bildeknapp:hover img{outline:2px solid var(--line);opacity:.85}
+  .temarad .bildeknapp .pluss{position:absolute;right:-5px;bottom:-5px;width:18px;height:18px;border-radius:50%;background:#fff;color:#222;font:700 13px/18px sans-serif;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .temarad .temaover{outline:2px dashed #fff;outline-offset:3px}
   .temarad input[type=text]{flex:1;min-width:160px;padding:7px 10px}
   .temarad .n{font-size:13px;color:var(--dim);white-space:nowrap}
   .temarad .adv{font-size:12.5px;color:#e69aa8;white-space:nowrap;cursor:help}
@@ -321,7 +325,7 @@
       </div>
       <div id="kildeCsv" class="hidden">
         <div class="csvsone" id="csvSone">
-          <p>Dra CSV-filer hit, eller velg dem. <b>Hver fil blir ett tema.</b> Blooket-filer fungerer rett inn.</p>
+          <p>Dra CSV-filer hit, eller velg dem. <b>Hver fil blir ett tema.</b> Blooket-filer fungerer rett inn.<br>Trykk på den lille fargeflisen ved et tema for å <b>legge til et bilde</b> (eller dra bildet rett på temaet).</p>
           <div class="rad">
             <label class="btn liten" style="cursor:pointer">Velg CSV-filer<input type="file" id="csvFil" accept=".csv,.txt,text/csv" multiple hidden></label>
             <button class="btn ghost liten" id="csvMal" type="button">Last ned CSV-mal</button>
@@ -458,18 +462,60 @@ $("csvSone").addEventListener("drop", e=>{ const f=[...((e.dataTransfer&&e.dataT
 function tegnTemaliste(){
   $("temaliste").innerHTML = csvTemaer.map((t,i)=>{
     const fg=EGNE_FARGER[i%EGNE_FARGER.length];
-    const bilde=temaBilde({egne:{x:{navn:t.navn,farge:fg[0],mork:fg[1],lys:fg[2]}}},"x",1);
+    const bilde=t.bilde || temaBilde({egne:{x:{navn:t.navn,farge:fg[0],mork:fg[1],lys:fg[2]}}},"x",1);
     const feil = !t.sp.length ? `<span class="adv">Fant ingen spørsmål – sjekk formatet</span>`
       : t.feil.length ? `<span class="adv" title="Linje ${t.feil.join(", ")} mangler svar eller riktig svar">${t.feil.length} linje${t.feil.length>1?"r":""} hoppet over</span>` : "";
-    return `<div class="temarad" data-id="${t.id}"><img src="${bilde}" alt=""><input type="text" value="${esc(t.navn)}" aria-label="Navn på tema">
-      <span class="n">${t.sp.length} spørsmål</span>${feil}<button class="radknapp fare" type="button">Fjern</button></div>`;
+    return `<div class="temarad" data-id="${t.id}"><label class="bildeknapp" title="${t.bilde?"Bytt bilde":"Legg til bilde"}"><img src="${bilde}" alt="">${t.bilde?"":`<span class="pluss">+</span>`}<input type="file" accept="image/*" class="bildefil" hidden></label><input type="text" value="${esc(t.navn)}" aria-label="Navn på tema">
+      <span class="n">${t.sp.length} spørsmål</span>${feil}${t.bilde?`<button class="radknapp fjernbilde" type="button">Fjern bilde</button>`:""}<button class="radknapp fare fjerntema" type="button">Fjern</button></div>`;
   }).join("") || `<div class="tom">Ingen filer lastet opp ennå.</div>`;
 }
-$("temaliste").addEventListener("input", e=>{ const r=e.target.closest(".temarad"); const t=r&&csvTemaer.find(x=>x.id===r.dataset.id); if(t) t.navn=e.target.value; });
+$("temaliste").addEventListener("input", e=>{ if(!e.target.matches("input[type=text]")) return; const r=e.target.closest(".temarad"); const t=r&&csvTemaer.find(x=>x.id===r.dataset.id); if(t) t.navn=e.target.value; });
 $("temaliste").addEventListener("change", e=>{ if(e.target.matches("input[type=text]")) tegnTemaliste(); });
 $("temaliste").addEventListener("click", e=>{
   if(!e.target.classList.contains("radknapp")) return;
-  const r=e.target.closest(".temarad"); csvTemaer=csvTemaer.filter(x=>x.id!==r.dataset.id); tegnTemaliste(); oppdaterNyHint();
+  const r=e.target.closest(".temarad"), t=csvTemaer.find(x=>x.id===r.dataset.id);
+  if(e.target.classList.contains("fjernbilde")){ if(t) delete t.bilde; tegnTemaliste(); return; }
+  csvTemaer=csvTemaer.filter(x=>x.id!==r.dataset.id); tegnTemaliste(); oppdaterNyHint();
+});
+/* ---------- Bilde per tema: krympes i nettleseren og lagres i selve prøven ---------- */
+const BILDE_MAKS_PX=800;
+function krympBilde(fil){
+  return new Promise((res,rej)=>{
+    if(!fil || !/^image\//.test(fil.type)) return rej(new Error("Det er ikke et bilde."));
+    const url=URL.createObjectURL(fil), img=new Image();
+    img.onload=()=>{
+      const sk=Math.min(1, BILDE_MAKS_PX/Math.max(img.naturalWidth,img.naturalHeight));
+      const c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*sk); c.height=Math.round(img.naturalHeight*sk);
+      const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      let d=c.toDataURL("image/webp",0.8);
+      if(!d.startsWith("data:image/webp")) d=c.toDataURL("image/jpeg",0.82);
+      res(d);
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error("Klarte ikke å lese bildet.")); };
+    img.src=url;
+  });
+}
+async function settTemaBilde(id, fil){
+  const t=csvTemaer.find(x=>x.id===id); if(!t) return;
+  try{ t.bilde=await krympBilde(fil); st("nyStatus","",null); tegnTemaliste(); }
+  catch(e){ st("nyStatus",e.message||"Klarte ikke å legge til bildet.",false); }
+}
+$("temaliste").addEventListener("change", e=>{
+  if(!e.target.classList.contains("bildefil")) return;
+  const r=e.target.closest(".temarad"), f=e.target.files&&e.target.files[0];
+  if(r && f) settTemaBilde(r.dataset.id, f);
+});
+["dragenter","dragover"].forEach(ev=>$("temaliste").addEventListener(ev,e=>{
+  const r=e.target.closest(".temarad"); if(!r) return;
+  e.preventDefault(); e.stopPropagation(); document.querySelectorAll(".temarad.temaover").forEach(x=>x!==r&&x.classList.remove("temaover")); r.classList.add("temaover");
+}));
+$("temaliste").addEventListener("dragleave", e=>{ const r=e.target.closest(".temarad"); if(r && !r.contains(e.relatedTarget)) r.classList.remove("temaover"); });
+$("temaliste").addEventListener("drop", e=>{
+  const r=e.target.closest(".temarad"); if(!r) return;
+  e.preventDefault(); e.stopPropagation(); r.classList.remove("temaover");
+  const f=[...((e.dataTransfer&&e.dataTransfer.files)||[])].find(f=>/^image\//.test(f.type));
+  if(f) settTemaBilde(r.dataset.id, f); else st("nyStatus","Dra et bilde (jpg, png eller webp) på temaet.",false);
 });
 $("csvMal").addEventListener("click",()=>{
   const mal="Spørsmål;Svar 1;Svar 2;Svar 3;Svar 4;Riktig svar (1-4)\nHva heter islams hellige bok?;Bibelen;Koranen;Toraen;Vedaene;2\nHvor mange søyler har islam?;Tre;Fem;;;2\n";
@@ -586,13 +632,16 @@ $("opprettBtn").addEventListener("click", async ()=>{
     gyldige.forEach((t,i)=>{
       const key="t"+(i+1), fg=EGNE_FARGER[i%EGNE_FARGER.length];
       egne[key]={navn:(t.navn||"").trim()||("Tema "+(i+1)), farge:fg[0], mork:fg[1], lys:fg[2],
-                 sp:t.sp.map((q,j)=>({s:q.s, a:q.a, k:kodFasitInn(q.f,j)}))};
+                 sp:t.sp.map((q,j)=>({s:q.s, a:q.a, k:kodFasitInn(q.f,j)})), ...(t.bilde?{bilde:t.bilde}:{})};
       religioner.push(key);
     });
   } else {
     religioner=[...$("relvalg").querySelectorAll("input:checked")].map(i=>i.value);
     if(!religioner.length) return st("nyStatus","Velg minst én religion.",false);
   }
+  // Firestore tåler maks ca. 1 MB per prøve – bildene er den store delen
+  if(egne && JSON.stringify(egne).length > 900000)
+    return st("nyStatus","Bildene tar for stor plass til én prøve. Fjern bildet fra ett eller to temaer og prøv igjen.",false);
   const kilde=$("nyKilde").value;
   let kodeliste, navnKopi=null, elevIder=null, gruppeId=null;
   $("opprettBtn").disabled=true; st("nyStatus","Oppretter …",null);

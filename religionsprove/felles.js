@@ -238,6 +238,7 @@ function temaBank(p, key){ return (p && p.egne && p.egne[key]) ? (p.egne[key].sp
 /* Bilde: de innebygde religionene har egne bilder – egne temaer får en farget flis med forbokstav */
 function temaBilde(p, key, n){
   if(RELIGIONER[key] && !(p && p.egne && p.egne[key])) return relBilde(key, n||1);
+  if(p && p.egne && p.egne[key] && p.egne[key].bilde) return p.egne[key].bilde;   // opplastet bilde for temaet
   const t=temaInfo(p, key), navn=(t.navn||"?").trim(), tall=(navn.match(/\d+/)||[""])[0].slice(0,2);
   const b=esc((navn.charAt(0).toUpperCase()||"?")+tall), fs=b.length>2?110:b.length>1?130:150;
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.farge}"/><stop offset="1" stop-color="${t.mork}"/></linearGradient></defs><rect width="300" height="300" fill="url(#g)"/><circle cx="245" cy="55" r="95" fill="#fff" opacity=".09"/><circle cx="35" cy="270" r="75" fill="#fff" opacity=".07"/><text x="150" y="${150+fs*0.31}" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="${fs}" fill="#fff" opacity=".93">${b}</text></svg>`;
