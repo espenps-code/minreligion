@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arbeidsark – Krøniken</title>
+<title>Arbeidslogg – Krøniken</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -175,6 +175,43 @@
 
   @media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important;animation:none !important}}
 
+  /* ===== Elevrapporter: to per A4 ===== */
+  #elevrapporter{display:none}
+  @page{size:A4;margin:9mm}
+  @media print{
+    body.print-elever #hoved, body.print-elever #tavle{display:none !important}
+    body.print-elever #elevrapporter{display:block}
+  }
+  .erk{height:137mm;box-sizing:border-box;padding:7mm 8mm 5mm;font-family:'Atkinson Hyperlegible',system-ui,sans-serif;color:#1d1a33;
+    display:flex;flex-direction:column;overflow:hidden;break-inside:avoid;page-break-inside:avoid;position:relative;background:#fff}
+  .erk:nth-child(odd):not(:last-child){border-bottom:1.2px dashed #999}
+  .erk:nth-child(odd):not(:last-child)::after{content:"✂";position:absolute;bottom:-9px;left:4mm;font-size:13px;color:#777;background:#fff;padding:0 3px}
+  .erk:nth-child(even){break-after:page;page-break-after:always}
+  .erk:last-child{break-after:auto;page-break-after:auto}
+  .erk-topp{display:flex;justify-content:space-between;align-items:flex-end;gap:10mm;border-bottom:2.5px solid #E8B04B;padding-bottom:3mm;margin-bottom:3.5mm}
+  .erk-eyebrow{font-size:8.5pt;letter-spacing:1.8px;text-transform:uppercase;color:#8a6a1f;font-weight:700}
+  .erk-navn{font-family:'Fraunces',serif;font-weight:700;font-size:24pt;line-height:1.05;margin:1mm 0 0}
+  .erk-sub{font-size:9.5pt;color:#555}
+  .erk-sum{text-align:right;min-width:52mm}
+  .erk-pst{font-family:'Fraunces',serif;font-weight:700;font-size:26pt;line-height:1;color:#2a7f72}
+  .erk-tall{font-size:9.5pt;color:#444;margin:1mm 0 1.5mm}
+  .erk-bar{height:3.2mm;background:#ece7da;border-radius:99px;overflow:hidden}
+  .erk-bar i{display:block;height:100%;background:#4FB8A8;border-radius:99px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.erk-tab{width:100%;border-collapse:collapse;font-size:9.5pt}
+  table.erk-tab th{text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#777;font-weight:700;padding:0 2mm 1.2mm 0;border-bottom:1px solid #ccc}
+  table.erk-tab td{padding:1.3mm 2mm 1.3mm 0;border-bottom:1px solid #eee;vertical-align:middle}
+  table.erk-tab td.d{white-space:nowrap;color:#555;width:16mm}
+  table.erk-tab td.t{max-width:52mm;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.erk-tab td.g{white-space:nowrap;text-align:right;font-weight:700;width:18mm}
+  .bokser{display:flex;flex-wrap:wrap;gap:1.2mm}
+  .boks{min-width:5.6mm;height:5.6mm;padding:0 1mm;border:1.2px solid #bbb;border-radius:1.3mm;display:inline-flex;align-items:center;justify-content:center;font-size:7.5pt;color:#999;box-sizing:border-box}
+  .boks.ja{background:#cdeee8;border-color:#4FB8A8;color:#1e5f55;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .erk-borte{font-style:italic;color:#b2465a}
+  .erk-kom{margin-top:auto;padding-top:3mm}
+  .erk-kom .l{font-size:8.5pt;font-weight:700;color:#777;text-transform:uppercase;letter-spacing:1px}
+  .erk-kom .erk-linje{border-bottom:1px solid #bbb;height:7mm}
+  .erk-tom{color:#888;font-style:italic;font-size:10pt}
+
   /* Utskrift: kun rapporten */
   @media print{
     body{background:#fff !important;color:#000}
@@ -198,8 +235,8 @@
   <div class="topbar">
     <div class="brand">
       <span class="navn">Krøniken<span class="d">.</span></span>
-      <span class="sub">Arbeidsark · hvem har gjort hva</span>
-      <a class="pille" href="index.html">← Til Krøniken</a>
+      <span class="sub">Arbeidslogg · hvem har gjort hva</span>
+      <a class="pille" href="index.html">← Alle verktøy</a>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -226,7 +263,7 @@
   <section id="app" class="hidden">
     <div class="faner" id="faner">
       <button class="fane aktiv" data-fane="perioder">Perioder og timer</button>
-      <button class="fane" data-fane="grupper">Grupper</button>
+      <a class="fane" href="grupper.html" style="text-decoration:none">Mine grupper ↗</a>
     </div>
 
     <!-- Perioder-liste -->
@@ -284,7 +321,9 @@
         <div class="rad ikke-print" style="justify-content:space-between;align-items:center;margin-bottom:6px">
           <h2 style="margin:0">Rapport for perioden</h2>
           <div class="rad">
-            <button class="btn ghost liten" id="printBtn">Skriv ut</button>
+            <button class="btn ghost liten" id="printBtn">Skriv ut tabellen</button>
+            <select id="erValg" style="width:auto;padding:8px 10px;font-size:14px" aria-label="Velg elev for elevrapport"></select>
+            <button class="btn ghost liten" id="erBtn">Skriv ut elevrapporter</button>
             <button class="btn ghost liten" id="csvBtn">Last ned til Excel</button>
           </div>
         </div>
@@ -297,32 +336,11 @@
       </div>
     </div>
 
-    <!-- Grupper -->
-    <div id="faneGrupper" class="hidden">
-      <div class="to-kol">
-        <div class="panel">
-          <h2>Mine grupper</h2>
-          <p class="hint">Trykk på en gruppe for å endre den.</p>
-          <div class="liste" id="gruppeliste"></div>
-          <div style="margin-top:14px"><button class="btn ghost liten" id="nyGruppeBtn">+ Ny gruppe</button></div>
-        </div>
-        <div class="panel">
-          <h2 id="gsTittel">Ny gruppe</h2>
-          <p class="hint">Bruk bare fornavn (eller fornavn + forbokstav hvis to heter det samme). Ett navn per linje.</p>
-          <label class="felt" for="gNavn">Navn på gruppa</label>
-          <input id="gNavn" type="text" placeholder="F.eks. 7A" style="margin-bottom:12px">
-          <label class="felt" for="gElever">Elever</label>
-          <textarea id="gElever" placeholder="Amina&#10;Jonas&#10;Sara L&#10;Sara M"></textarea>
-          <div class="rad" style="margin-top:12px">
-            <button class="btn liten" id="lagreGruppeBtn">Lagre gruppe</button>
-            <button class="btn fare liten hidden" id="slettGruppeBtn" style="margin-left:auto">Slett gruppa</button>
-          </div>
-          <div class="status" id="gruppeStatus"></div>
-        </div>
-      </div>
-    </div>
   </section>
 </div>
+
+<!-- ============ ELEVRAPPORTER (kun utskrift) ============ -->
+<div id="elevrapporter" aria-hidden="true"></div>
 
 <!-- ============ TAVLE (fullskjerm) ============ -->
 <section id="tavle" class="hidden" aria-label="Tavlevisning">
@@ -442,16 +460,15 @@ function ruter(){
   if(hva!=="periode" && hva!=="tavle" && timerUnsub){ timerUnsub(); timerUnsub=null; aktivPeriode=null; }
   if(hva==="tavle" && a && b){ apneTavle(a,b); return; }
   if(hva==="periode" && a){ visPeriode(a); return; }
-  visFane(hva==="grupper"?"grupper":"perioder");
+  if(hva==="grupper"){ location.href="grupper.html"; return; }
+  visFane("perioder");
 }
-document.querySelectorAll(".fane").forEach(f=>f.addEventListener("click",()=>gaTil(f.dataset.fane==="grupper"?"grupper":"")));
+document.querySelectorAll(".fane[data-fane]").forEach(f=>f.addEventListener("click",()=>gaTil("")));
 function visFane(navn){
-  document.querySelectorAll(".fane").forEach(f=>f.classList.toggle("aktiv", f.dataset.fane===navn));
   $("faner").classList.remove("hidden");
-  $("fanePerioder").classList.toggle("hidden", navn!=="perioder");
-  $("faneGrupper").classList.toggle("hidden", navn!=="grupper");
+  $("fanePerioder").classList.remove("hidden");
   $("periodeVisning").classList.add("hidden");
-  if(navn==="perioder") renderPerioder(); else renderGrupper();
+  renderPerioder();
 }
 
 /* ---------- Grupper ---------- */
@@ -463,51 +480,9 @@ async function lastGrupper(){
 }
 function fyllGruppeValg(){
   const s=$("pGruppe");
-  s.innerHTML = grupper.length ? grupper.map(g=>`<option value="${g.id}">${esc(g.navn)} (${g.elever.length})</option>`).join("") : `<option value="">Lag en gruppe først</option>`;
+  s.innerHTML = grupper.length ? grupper.map(g=>`<option value="${g.id}">${esc(g.navn)} (${g.elever.length})</option>`).join("") : `<option value="">Lag en gruppe i «Mine grupper» først</option>`;
 }
-function renderGrupper(){
-  const l=$("gruppeliste");
-  if(!grupper.length){ l.innerHTML=`<div class="tom">Ingen grupper ennå. Skriv inn den første til høyre.</div>`; }
-  else l.innerHTML = grupper.map(g=>`<div class="linje klikk${g.id===redigerGruppeId?" aktiv":""}" data-id="${g.id}">
-      <div class="ikon">${esc(g.navn.slice(0,3))}</div>
-      <div class="info"><div class="k">${esc(g.navn)}</div><div class="m">${g.elever.length} elever</div></div><div>→</div></div>`).join("");
-  l.querySelectorAll(".linje").forEach(r=>r.addEventListener("click",()=>redigerGruppe(r.dataset.id)));
-}
-function redigerGruppe(id){
-  const g=grupper.find(x=>x.id===id); redigerGruppeId=g?g.id:null;
-  $("gsTittel").textContent = g ? "Endre gruppe" : "Ny gruppe";
-  $("gNavn").value = g ? g.navn : "";
-  $("gElever").value = g ? g.elever.map(e=>e.navn).join("\n") : "";
-  $("slettGruppeBtn").classList.toggle("hidden", !g);
-  st("gruppeStatus","",null);
-  renderGrupper();
-}
-$("nyGruppeBtn").addEventListener("click",()=>{ redigerGruppe(null); $("gNavn").focus(); });
-$("lagreGruppeBtn").addEventListener("click", async ()=>{
-  const navn=$("gNavn").value.trim();
-  const linjer=$("gElever").value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  if(!navn){ st("gruppeStatus","Gi gruppa et navn.", false); return; }
-  if(!linjer.length){ st("gruppeStatus","Skriv inn minst én elev.", false); return; }
-  // Behold samme elev-ID når navnet står der fra før, så fremdriften ikke forsvinner
-  const gammel=grupper.find(g=>g.id===redigerGruppeId);
-  const ledige=gammel ? gammel.elever.slice() : [];
-  const nye=linjer.map(n=>{ const i=ledige.findIndex(e=>e.navn===n); if(i>-1) return ledige.splice(i,1)[0]; return {id:nyId(), navn:n}; });
-  st("gruppeStatus","Lagrer …",null);
-  try{
-    if(gammel){ await db.collection("aa_grupper").doc(gammel.id).update({navn, elever:nye}); }
-    else { const ref=await db.collection("aa_grupper").add({eier:bruker.uid, navn, elever:nye, opprettet:Date.now()}); redigerGruppeId=ref.id; }
-    await lastGrupper(); redigerGruppe(redigerGruppeId);
-    st("gruppeStatus",`Lagret – ${nye.length} elever.`, true);
-  }catch(e){ st("gruppeStatus", feilTekst(e), false); }
-});
-$("slettGruppeBtn").addEventListener("click", async ()=>{
-  const g=grupper.find(x=>x.id===redigerGruppeId); if(!g) return;
-  const brukt=perioder.filter(p=>p.gruppeId===g.id).length;
-  if(brukt){ st("gruppeStatus",`Gruppa brukes i ${brukt} periode(r). Slett periodene først.`, false); return; }
-  if(!confirm(`Slette gruppa «${g.navn}»?`)) return;
-  try{ await db.collection("aa_grupper").doc(g.id).delete(); await lastGrupper(); redigerGruppe(null); st("gruppeStatus","Gruppa er slettet.", true); }
-  catch(e){ st("gruppeStatus", feilTekst(e), false); }
-});
+/* Grupper redigeres nå i «Mine grupper» (grupper.html) – felles for alle tre verktøyene. */
 
 /* ---------- Perioder ---------- */
 async function lastPerioder(){
@@ -517,7 +492,7 @@ async function lastPerioder(){
 }
 function renderPerioder(){
   const l=$("periodeliste");
-  if(!perioder.length){ l.innerHTML=`<div class="tom">Ingen perioder ennå.${grupper.length?"":" Start med å lage en gruppe under «Grupper»."}</div>`; return; }
+  if(!perioder.length){ l.innerHTML=`<div class="tom">Ingen perioder ennå.${grupper.length?"":' Start med å lage en gruppe i <a href="grupper.html">Mine grupper</a>.'}</div>`; return; }
   l.innerHTML = perioder.map(p=>{ const g=gruppeFor(p);
     return `<div class="linje klikk" data-id="${p.id}"><div class="ikon">${esc(g?g.navn.slice(0,3):"?")}</div>
       <div class="info"><div class="k">${esc(p.tema)}</div><div class="m">${esc(g?g.navn:"(gruppa er slettet)")}</div></div><div>→</div></div>`; }).join("");
@@ -526,7 +501,7 @@ function renderPerioder(){
 $("nyPeriodeBtn").addEventListener("click", async ()=>{
   const tema=$("pTema").value.trim(), gruppeId=$("pGruppe").value;
   if(!tema){ st("periodeStatus","Skriv inn et tema.", false); return; }
-  if(!gruppeId){ st("periodeStatus","Lag en gruppe først (fanen «Grupper»).", false); return; }
+  if(!gruppeId){ st("periodeStatus","Lag en gruppe først i «Mine grupper».", false); return; }
   try{
     const ref=await db.collection("aa_perioder").add({eier:bruker.uid, tema, gruppeId, opprettet:Date.now()});
     $("pTema").value=""; await lastPerioder(); gaTil("periode/"+ref.id);
@@ -537,7 +512,7 @@ function visPeriode(id){
   const p=perioder.find(x=>x.id===id);
   if(!p){ gaTil(""); return; }
   $("faner").classList.add("hidden");
-  $("fanePerioder").classList.add("hidden"); $("faneGrupper").classList.add("hidden");
+  $("fanePerioder").classList.add("hidden");
   $("periodeVisning").classList.remove("hidden");
   const g=gruppeFor(p);
   $("pvTittel").textContent=p.tema;
@@ -640,6 +615,7 @@ function klasseFor(f,n){ if(!n) return ""; if(f>=n) return "n100"; if(f/n>=.5) r
 function renderRapport(){
   const boks=$("rapport");
   const {el, rader}=rapportData();
+  fyllElevValg();
   if(!timer.length || !el.length){ boks.innerHTML=`<div class="tom" style="padding:14px">Rapporten fylles ut når perioden har timer${el.length?"":" og gruppa har elever"}.</div>`; return; }
   const hode=`<tr><th>Elev</th>${timer.map((t,i)=>`<th title="${esc(t.tittel)}">${esc(kortDato(t.dato))}<small>${esc(t.tittel||"Time "+(i+1))}</small></th>`).join("")}<th>Totalt</th><th>%</th></tr>`;
   const kropp=rader.map(r=>`<tr><td>${esc(r.navn)}</td>${r.celler.map(c=>c.borte?`<td class="c nb">borte</td>`:`<td class="c ${klasseFor(c.f,c.n)}">${c.f}/${c.n}</td>`).join("")}<td class="c tot ${klasseFor(r.f,r.n)}">${r.f}/${r.n}</td><td class="c tot">${r.pst} %</td></tr>`).join("");
@@ -649,6 +625,51 @@ function renderRapport(){
   boks.innerHTML=`<table class="rapport"><thead>${hode}</thead><tbody>${kropp}${sum}</tbody></table>`;
 }
 $("printBtn").addEventListener("click",()=>window.print());
+
+/* ---------- Elevrapporter (to per A4) ---------- */
+function fyllElevValg(){
+  const s=$("erValg"), forrige=s.value, el=elever(aktivPeriode);
+  s.innerHTML=`<option value="">Alle elever (${el.length})</option>`+el.map(e=>`<option value="${e.id}">${esc(e.navn)}</option>`).join("");
+  if([...s.options].some(o=>o.value===forrige)) s.value=forrige;
+}
+function lagElevrapporter(kunId){
+  const p=aktivPeriode, g=gruppeFor(p), el=elever(p).filter(e=>!kunId||e.id===kunId);
+  const datoer=timer.map(t=>t.dato).filter(Boolean);
+  const spenn=datoer.length?(datoer[0]===datoer[datoer.length-1]?kortDato(datoer[0]):`${kortDato(datoer[0])}–${kortDato(datoer[datoer.length-1])}`):"";
+  return el.map(e=>{
+    let f=0,n=0,borte=0;
+    const rader=timer.map((t,i)=>{
+      const tit=esc(t.tittel||"Time "+(i+1));
+      if(erBorte(t,e.id)){ borte++; return `<tr><td class="d">${esc(langDato(t.dato))}</td><td class="t">${tit}</td><td><span class="erk-borte">Borte denne timen</span></td><td class="g">–</td></tr>`; }
+      const sett=new Set((t.ferdig&&t.ferdig[e.id])||[]);
+      const ant=antallFerdig(t,e.id); f+=ant; n+=t.oppgaver.length;
+      const bokser=t.oppgaver.map((o,j)=>sett.has(j)?`<span class="boks ja">✓ ${esc(o)}</span>`:`<span class="boks">${esc(o)}</span>`).join("");
+      return `<tr><td class="d">${esc(langDato(t.dato))}</td><td class="t">${tit}</td><td><div class="bokser">${bokser}</div></td><td class="g">${ant} av ${t.oppgaver.length}</td></tr>`;
+    }).join("");
+    const pst=n?Math.round(f/n*100):0;
+    return `<section class="erk">
+      <div class="erk-topp">
+        <div><div class="erk-eyebrow">Arbeidslogg · ${esc(p.tema)}</div>
+          <div class="erk-navn">${esc(e.navn)}</div>
+          <div class="erk-sub">${esc(g?g.navn:"")}${spenn?" · "+spenn:""} · ${timer.length} timer${borte?` · borte ${borte} ${borte===1?"time":"timer"}`:""}</div></div>
+        <div class="erk-sum"><div class="erk-pst">${pst} %</div>
+          <div class="erk-tall">${f} av ${n} oppgaver gjort</div>
+          <div class="erk-bar"><i style="width:${pst}%"></i></div></div>
+      </div>
+      ${timer.length?`<table class="erk-tab"><thead><tr><th>Dato</th><th>Time</th><th>Oppgaver (✓ = gjort)</th><th style="text-align:right">Gjort</th></tr></thead><tbody>${rader}</tbody></table>`:`<div class="erk-tom">Ingen timer i perioden ennå.</div>`}
+      <div class="erk-kom"><div class="l">Kommentar fra lærer</div><div class="erk-linje"></div><div class="erk-linje"></div></div>
+    </section>`;
+  }).join("");
+}
+$("erBtn").addEventListener("click",()=>{
+  if(!aktivPeriode) return;
+  const html=lagElevrapporter($("erValg").value);
+  if(!html) return;
+  $("elevrapporter").innerHTML=html;
+  document.body.classList.add("print-elever");
+  setTimeout(()=>window.print(),50);
+});
+window.addEventListener("afterprint",()=>document.body.classList.remove("print-elever"));
 $("csvBtn").addEventListener("click",()=>{
   if(!aktivPeriode || !timer.length) return;
   const {rader}=rapportData();
@@ -661,7 +682,7 @@ $("csvBtn").addEventListener("click",()=>{
   rader.forEach(r=>linjer.push([q(r.navn), ...r.celler.map(c=>c.borte?"borte":`${c.f} av ${c.n}`), `${r.f} av ${r.n}`, r.pst].join(";")));
   const blob=new Blob(["﻿"+linjer.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=`Arbeidsark – ${aktivPeriode.tema.replace(/[\\/:*?"<>|]/g,"-")}.csv`;
+  a.download=`Arbeidslogg – ${aktivPeriode.tema.replace(/[\\/:*?"<>|]/g,"-")}.csv`;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 });
 

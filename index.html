@@ -124,6 +124,33 @@
   .dsvar .t{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:6px}
   .dsvar ol{margin:0;padding-left:18px} .dsvar li{margin-bottom:4px;color:rgba(243,233,210,0.85)}
 
+  /* ---------- Verktøymeny ---------- */
+  .meny-tit{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(28px,4vw,40px);margin:4px 0 6px;line-height:1.1}
+  .meny-sub{color:rgba(243,233,210,0.65);margin:0 0 26px;font-size:16px}
+  .meny-topp{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .grupper-knapp{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:12px;padding:10px 16px;color:var(--parchment);
+    text-decoration:none;font-weight:700;font-size:15px;margin-top:8px;transition:border-color .15s,background .15s}
+  .grupper-knapp:hover{border-color:var(--gold);background:rgba(232,176,75,.08)}
+  .grupper-knapp svg{width:22px;height:22px;color:var(--gold-soft)}
+  select.velg{background:var(--night);color:var(--parchment);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:15px;min-width:200px}
+  .lenkerad .elevnavn{font-weight:700;min-width:110px}
+  .rel-topp .alias b{color:var(--parchment)}
+  .verktoyliste{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .verktoy{display:flex;flex-direction:column;gap:10px;background:var(--night-2);border:1px solid var(--line);border-top:5px solid var(--c);
+    border-radius:18px;padding:24px 22px 22px;color:var(--parchment);text-decoration:none;min-height:270px;transition:transform .15s,border-color .15s,box-shadow .2s}
+  .verktoy:hover{transform:translateY(-4px);border-color:var(--c);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+  .verktoy:focus-visible{outline:3px solid var(--parchment);outline-offset:3px}
+  .v-ikon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb, var(--c) 20%, transparent);color:var(--c);margin-bottom:6px}
+  .v-ikon svg{width:36px;height:36px}
+  .verktoy h3{font-family:'Fraunces',serif;font-weight:700;font-size:23px;margin:0;line-height:1.15}
+  .verktoy p{margin:0;font-size:14.5px;color:rgba(243,233,210,0.75);flex:1}
+  .v-gaa{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;font-family:'Fraunces',serif;font-weight:600;font-size:15px;
+    background:var(--c);color:var(--night);border-radius:11px;padding:9px 16px;margin-top:6px}
+  .tilbake{background:none;border:none;color:var(--gold-soft);font:inherit;font-weight:700;cursor:pointer;padding:0;margin:0 0 14px}
+  .vis-tit{font-family:'Fraunces',serif;font-weight:700;font-size:30px;margin:0 0 16px}
+  @media (max-width:860px){ .verktoyliste{grid-template-columns:1fr} .verktoy{min-height:0} }
+
   @media (max-width:760px){ .hero{grid-template-columns:1fr} .steg,.deler{grid-template-columns:1fr} }
   @media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important}}
 </style>
@@ -134,9 +161,7 @@
   <div class="topbar">
     <div class="brand">
       <span class="navn">Krøniken<span class="d">.</span></span>
-      <span class="sub">KRLE · lag, møt og diskuter religioner</span>
-      <a href="religionsprove/index.html" style="font-size:13px;color:var(--gold-soft);text-decoration:none;border:1px solid rgba(243,233,210,0.16);border-radius:999px;padding:4px 12px;margin-left:4px">Prøveportal →</a>
-      <a href="arbeidsark.html" style="font-size:13px;color:var(--gold-soft);text-decoration:none;border:1px solid rgba(243,233,210,0.16);border-radius:999px;padding:4px 12px">Arbeidsark →</a>
+      <span class="sub">KRLE-verktøy for læreren</span>
     </div>
     <div class="who" id="who"></div>
   </div>
@@ -188,6 +213,41 @@
 
   <!-- ============ DASHBOARD (innlogget) ============ -->
   <section id="dashboard" class="hidden">
+
+    <!-- Verktøymeny: de tre verktøyene er likeverdige -->
+    <div id="meny">
+      <div class="meny-topp">
+        <div>
+          <h1 class="meny-tit">Hva skal vi jobbe med i dag?</h1>
+          <p class="meny-sub">Velg et verktøy. Alle bruker samme innlogging og de samme gruppene.</p>
+        </div>
+        <a class="grupper-knapp" href="grupper.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.3" r="2.6"/><path d="M15.6 14.2c2.6-.3 4.5 1.3 5 4.3"/></svg>Mine grupper</a>
+      </div>
+      <div class="verktoyliste">
+        <a class="verktoy" href="#simulator" style="--c:var(--peri)">
+          <div class="v-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M4.5 12h15M12 4.5c2.2 2.1 3.2 4.6 3.2 7.5s-1 5.4-3.2 7.5M12 4.5C9.8 6.6 8.8 9.1 8.8 12s1 5.4 3.2 7.5"/><circle cx="20.2" cy="5" r="1.4" fill="currentColor"/><circle cx="3.6" cy="18.6" r="1.1" fill="currentColor"/></svg></div>
+          <h3>Religionssimulator</h3>
+          <p>Elevene bygger sin egen religion gjennom spørsmål og dilemmaer. Religionene møtes i en KI-drevet verden som driver klassediskusjonen.</p>
+          <span class="v-gaa">Åpne →</span>
+        </a>
+        <a class="verktoy" href="religionsprove/index.html" style="--c:var(--crimson)">
+          <div class="v-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3.8" width="14" height="17.2" rx="2.2"/><path d="M9 3.8h6v2.6H9z"/><path d="m8.4 11.2 1.5 1.5 2.8-2.9M8.4 16.4l1.5 1.5 2.8-2.9M14.6 11.6h1.8M14.6 16.8h1.8"/></svg></div>
+          <h3>Prøveportal</h3>
+          <p>Lag digitale prøver – de fem religionene eller egne spørsmål fra CSV. Elevene logger inn med kode, og du skriver ut rapporter.</p>
+          <span class="v-gaa">Åpne →</span>
+        </a>
+        <a class="verktoy" href="arbeidsark.html" style="--c:var(--teal)">
+          <div class="v-ikon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.2"/><path d="M3.5 9.3h17M3.5 14.7h17M9.2 4v16"/><path d="m11.8 6.9.9.9 1.7-1.8M15.8 12.2l.9.9 1.7-1.8M11.8 17.6l.9.9 1.7-1.8"/></svg></div>
+          <h3>Arbeidslogg</h3>
+          <p>Følg med på hvor mye av arbeidsarket hver elev gjør. Elevene krysser av på tavla, og du henter ut rapport for perioden.</p>
+          <span class="v-gaa">Åpne →</span>
+        </a>
+      </div>
+    </div>
+
+    <div id="simulatorVisning" class="hidden">
+    <button class="tilbake" id="tilMenyBtn">← Alle verktøy</button>
+    <h1 class="vis-tit">Religionssimulator</h1>
     <div class="panel">
       <h2>Mine klasser</h2>
       <p class="hint">Velg en klasse for å dele ut lenker, se innleveringer og starte simulatoren.</p>
@@ -202,7 +262,12 @@
     <div id="klassePanel" class="hidden">
       <div class="panel">
         <h2 id="kpTittel">Klasse</h2>
-        <p class="hint">Del ut elevlenker. Hver elev får en egen lenke med ferdig kallenavn.</p>
+        <p class="hint">Del ut elevlenker. Velg en gruppe for å få én lenke per elev – elevene er anonyme med kallenavn, men <b>du</b> ser hvem som har hvilket.</p>
+        <div class="rad" style="margin-bottom:12px">
+          <label class="felt" for="kGruppe" style="margin:0">Gruppe</label>
+          <select id="kGruppe" class="velg"></select>
+          <a href="grupper.html" style="font-size:13px">Mine grupper ↗</a>
+        </div>
         <div class="rad">
           <input id="antall" type="number" min="1" max="40" value="20" style="width:90px">
           <button class="btn liten" id="genererBtn">Generer lenker</button>
@@ -224,6 +289,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /simulatorVisning -->
   </section>
 
 </div>
@@ -275,7 +341,8 @@ if(klar){
     document.getElementById("dashboard").classList.toggle("hidden", !u);
     const who=document.getElementById("who");
     if(u){ who.innerHTML = `<span>${esc(u.email||"Innlogget")}</span> <button class="btn ghost liten" id="utBtn">Logg ut</button>`;
-      document.getElementById("utBtn").addEventListener("click",()=>auth.signOut());
+      document.getElementById("utBtn").addEventListener("click",()=>{ history.replaceState(null,"",location.pathname); auth.signOut(); });
+      visVisning();
       lastKlasser();
     } else { who.innerHTML=""; }
   });
@@ -322,13 +389,25 @@ function oversettFeil(e){
   return (e&&e.message)||"Noe gikk galt.";
 }
 
+/* ---------- Meny ↔ simulator (adressen #simulator husker hvor du er) ---------- */
+function visVisning(){
+  if(!bruker) return;
+  const sim = location.hash==="#simulator";
+  document.getElementById("meny").classList.toggle("hidden", sim);
+  document.getElementById("simulatorVisning").classList.toggle("hidden", !sim);
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", visVisning);
+document.getElementById("tilMenyBtn").addEventListener("click",()=>{ history.pushState(null,"",location.pathname+location.search); visVisning(); });
+
 /* ---------- Klasser ---------- */
 async function lastKlasser(){
   st("klasseStatus","",null);
   try{
     const snap = await db.collection("klasser").where("eier","==",bruker.uid).get();
     klasser = [];
-    snap.forEach(d=>{ const x=d.data()||{}; klasser.push({id:d.id, kode:x.kode||"Klasse", opprettet:(x.opprettet&&x.opprettet.seconds)||0}); });
+    await lastGrupper();
+    snap.forEach(d=>{ const x=d.data()||{}; klasser.push({id:d.id, kode:x.kode||"Klasse", gruppeId:x.gruppeId||null, opprettet:(x.opprettet&&x.opprettet.seconds)||0}); });
     klasser.sort((a,b)=>b.opprettet-a.opprettet);
     renderKlasser();
   }catch(e){ st("klasseStatus", "Kunne ikke hente klasser: "+(e.message||e), false); }
@@ -368,6 +447,7 @@ async function velgKlasse(k){
   document.getElementById("kpTittel").textContent = k.kode;
   document.getElementById("lenkeliste").innerHTML="";
   st("lenkeStatus","",null);
+  fyllKGruppe();
   document.getElementById("klassePanel").scrollIntoView({behavior:"smooth",block:"start"});
   await lastReligioner();
 }
@@ -386,14 +466,16 @@ function renderReligioner(){
   const grid=document.getElementById("relGrid");
   if(!religioner.length){ grid.innerHTML=`<div class="tom">Ingen religioner innlevert ennå. Del ut elevlenkene over.</div>`; oppdaterTeller(); return; }
   grid.innerHTML="";
+  const an=aliasTilNavn();
   religioner.forEach(r=>{
     const v=valgt.includes(r.id);
     const kort=document.createElement("div");
     kort.className="rel-kort"+(v?" valgt":"");
+    const elevNavn=an[r.alias];
     const dl=FELT.filter(f=>r[f[0]]).map(f=>`<dt>${f[1]}</dt><dd>${esc(r[f[0]])}</dd>`).join("");
     const ds=(Array.isArray(r.dilemmasvar)&&r.dilemmasvar.length)?`<div class="dsvar"><div class="t">Valg i situasjonene</div><ol>${r.dilemmasvar.map(d=>`<li>${esc(d.svar)}</li>`).join("")}</ol></div>`:"";
     kort.innerHTML=`<div class="rel-topp"><span class="velg-merke">${v?"✓":"+"}</span>
-      <div><h3>${esc(r.navn||"Uten navn")}</h3><div class="alias">${esc(r.alias||"")}</div></div></div>
+      <div><h3>${esc(r.navn||"Uten navn")}</h3><div class="alias">${esc(r.alias||"")}${elevNavn?` · <b>${esc(elevNavn)}</b>`:""}</div></div></div>
       <div class="rel-kjerne">${esc(r.kjerne||"")}</div>
       <button class="vis-detaljer">Vis detaljer ▾</button>
       <div class="detaljer hidden"><dl>${dl}</dl>${ds}</div>`;
@@ -427,6 +509,8 @@ document.getElementById("slettBtn").addEventListener("click", async ()=>{
     sub.forEach(d=>batch.delete(d.ref));
     batch.delete(db.collection("klasser").doc(aktivKlasse.id));
     await batch.commit();
+    const g=aktivGruppe();
+    if(g){ try{ await db.collection("aa_grupper").doc(g.id).update({["kallenavn."+aktivKlasse.id]: firebase.firestore.FieldValue.delete()}); }catch(_){} }
     document.getElementById("klassePanel").classList.add("hidden");
     aktivKlasse=null;
     await lastKlasser();
@@ -441,8 +525,72 @@ function genererAliaser(antall){
   while(ut.length<antall && g<antall*30){ g++; const a=ALIAS_ORD[Math.floor(Math.random()*ALIAS_ORD.length)]+"-"+(Math.floor(Math.random()*90)+10); if(!brukt.has(a)){ brukt.add(a); ut.push(a);} }
   return ut;
 }
+/* ---------- Felles grupper («Mine grupper») ----------
+   Koblingen elev ↔ kallenavn lagres PRIVAT i gruppa: aa_grupper/{id}.kallenavn[klasseId][elevId] = "Ravn-42".
+   Klassen, lenkene og religionene inneholder bare kallenavnet. */
+let grupper=[];
+async function lastGrupper(){
+  try{
+    const s=await db.collection("aa_grupper").where("eier","==",bruker.uid).get(); grupper=[];
+    s.forEach(d=>{ const x=d.data()||{}; grupper.push({id:d.id, navn:x.navn||"Gruppe", elever:Array.isArray(x.elever)?x.elever:[], kallenavn:x.kallenavn||{}}); });
+    grupper.sort((a,b)=>a.navn.localeCompare(b.navn,"nb"));
+  }catch(e){ grupper=[]; }
+}
+function aktivGruppe(){ return aktivKlasse && aktivKlasse.gruppeId ? grupper.find(g=>g.id===aktivKlasse.gruppeId) : null; }
+function kobling(){ const g=aktivGruppe(); return g ? Object.assign({}, g.kallenavn[aktivKlasse.id]||{}) : {}; }
+function aliasTilNavn(){ const g=aktivGruppe(), k=kobling(), m={}; if(g) g.elever.forEach(e=>{ if(k[e.id]) m[k[e.id]]=e.navn; }); return m; }
+function fyllKGruppe(){
+  const sel=document.getElementById("kGruppe");
+  sel.innerHTML=`<option value="">Ingen – bare antall lenker</option>`+grupper.map(g=>`<option value="${g.id}">${esc(g.navn)} (${g.elever.length} elever)</option>`).join("");
+  sel.value = aktivGruppe() ? aktivKlasse.gruppeId : "";
+  const medGruppe=!!aktivGruppe();
+  document.getElementById("antall").classList.toggle("hidden", medGruppe);
+  document.getElementById("genererBtn").textContent = medGruppe ? "Lag lenker for gruppa" : "Generer lenker";
+  if(medGruppe) visGruppeLenker();
+}
+function visGruppeLenker(){
+  const g=aktivGruppe(); if(!g) return;
+  const k=kobling();
+  sisteLenker=g.elever.filter(e=>k[e.id]).map(e=>({navn:e.navn, alias:k[e.id], url:skjemaLenke(aktivKlasse.id,k[e.id])}));
+  tegnLenker();
+  const mangler=g.elever.length-sisteLenker.length;
+  st("lenkeStatus", !sisteLenker.length ? `Trykk «Lag lenker for gruppa» for å lage én lenke til hver av de ${g.elever.length} elevene.`
+    : mangler ? `${mangler} elev${mangler>1?"er":""} mangler lenke – trykk «Lag lenker for gruppa».` : `Alle ${g.elever.length} elevene har lenke. Bare du ser navnene.`, mangler?null:true);
+}
+function tegnLenker(){
+  const liste=document.getElementById("lenkeliste");
+  liste.innerHTML=sisteLenker.map((l,i)=>`<div class="lenkerad">${l.navn?`<span class="elevnavn">${esc(l.navn)}</span>`:""}<span class="alias">${esc(l.alias)}</span><span class="url" title="${esc(l.url)}">${esc(l.url)}</span><button data-i="${i}">Kopier</button></div>`).join("");
+  liste.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{ kopier(sisteLenker[+b.dataset.i].url); b.textContent="Kopiert ✓"; setTimeout(()=>b.textContent="Kopier",1200); }));
+}
+document.getElementById("kGruppe").addEventListener("change", async e=>{
+  if(!aktivKlasse) return;
+  const gid=e.target.value||null;
+  try{
+    await db.collection("klasser").doc(aktivKlasse.id).update({gruppeId:gid});
+    aktivKlasse.gruppeId=gid; const kl=klasser.find(x=>x.id===aktivKlasse.id); if(kl) kl.gruppeId=gid;
+    sisteLenker=[]; document.getElementById("lenkeliste").innerHTML=""; st("lenkeStatus","",null);
+    fyllKGruppe(); renderReligioner();
+  }catch(err){ st("lenkeStatus","Kunne ikke koble gruppa: "+(err.message||err), false); }
+});
+async function lagGruppeLenker(){
+  const g=aktivGruppe(); if(!g) return;
+  const k=kobling(), brukt=new Set(Object.values(k));
+  let nye=0, g2=0;
+  g.elever.forEach(e=>{
+    if(k[e.id]) return;
+    let a; do{ a=ALIAS_ORD[Math.floor(Math.random()*ALIAS_ORD.length)]+"-"+(Math.floor(Math.random()*90)+10); g2++; }while(brukt.has(a) && g2<5000);
+    brukt.add(a); k[e.id]=a; nye++;
+  });
+  if(nye){
+    try{ await db.collection("aa_grupper").doc(g.id).update({["kallenavn."+aktivKlasse.id]: k}); g.kallenavn[aktivKlasse.id]=k; }
+    catch(err){ st("lenkeStatus","Kunne ikke lagre kallenavnene: "+(err.message||err), false); return; }
+  }
+  visGruppeLenker(); renderReligioner();
+}
+
 document.getElementById("genererBtn").addEventListener("click",()=>{
   if(!aktivKlasse) return;
+  if(aktivGruppe()){ lagGruppeLenker(); return; }
   const antall=Math.max(1,Math.min(40,parseInt(document.getElementById("antall").value)||20));
   sisteLenker=genererAliaser(antall).map(a=>({alias:a, url:skjemaLenke(aktivKlasse.id,a)}));
   const liste=document.getElementById("lenkeliste");
@@ -452,8 +600,8 @@ document.getElementById("genererBtn").addEventListener("click",()=>{
 });
 document.getElementById("kopierAlleBtn").addEventListener("click",()=>{
   if(!sisteLenker.length){ st("lenkeStatus","Generer lenker først.", false); return; }
-  kopier(sisteLenker.map(l=>`${l.alias}\t${l.url}`).join("\n"));
-  st("lenkeStatus","Alle lenker kopiert (kallenavn + lenke per linje).", true);
+  kopier(sisteLenker.map(l=>`${l.navn?l.navn+"\t":""}${l.alias}\t${l.url}`).join("\n"));
+  st("lenkeStatus", sisteLenker[0].navn ? "Alle lenker kopiert (navn + kallenavn + lenke per linje)." : "Alle lenker kopiert (kallenavn + lenke per linje).", true);
 });
 </script>
 </body>
